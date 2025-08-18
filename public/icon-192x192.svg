@@ -1,0 +1,90 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景グラデーション -->
+  <defs>
+    <radialGradient id="bgGradient" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#E3F2FD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#BBDEFB;stop-opacity:1" />
+    </radialGradient>
+    <linearGradient id="brainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF9999;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF6B9D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA8CC;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cloudGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#F0F8FF;stop-opacity:0.8" />
+    </linearGradient>
+    <linearGradient id="strawGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景円 -->
+  <circle cx="96" cy="96" r="96" fill="url(#bgGradient)"/>
+  
+  <!-- 雲の形状 -->
+  <g transform="translate(96, 96)">
+    <!-- メイン雲ボディ -->
+    <ellipse cx="0" cy="15" rx="50" ry="25" fill="url(#cloudGradient)" stroke="#E0E0E0" stroke-width="1"/>
+    
+    <!-- 雲の膨らみ -->
+    <circle cx="-25" cy="5" r="18" fill="url(#cloudGradient)" stroke="#E0E0E0" stroke-width="1"/>
+    <circle cx="25" cy="5" r="18" fill="url(#cloudGradient)" stroke="#E0E0E0" stroke-width="1"/>
+    <circle cx="0" cy="-5" r="22" fill="url(#cloudGradient)" stroke="#E0E0E0" stroke-width="1"/>
+    <circle cx="-35" cy="15" r="12" fill="url(#cloudGradient)" stroke="#E0E0E0" stroke-width="1"/>
+    <circle cx="35" cy="15" r="12" fill="url(#cloudGradient)" stroke="#E0E0E0" stroke-width="1"/>
+    
+    <!-- 脳みそ形状 -->
+    <g transform="translate(0, -15)">
+      <!-- 脳の左半球 -->
+      <path d="M -20 -15 Q -35 -25 -30 -35 Q -25 -45 -10 -40 Q 0 -45 5 -35 Q 10 -30 0 -25 Q -10 -20 -20 -15 Z" 
+            fill="url(#brainGradient)" stroke="#FF4081" stroke-width="1.5"/>
+      
+      <!-- 脳の右半球 -->
+      <path d="M 20 -15 Q 35 -25 30 -35 Q 25 -45 10 -40 Q 0 -45 -5 -35 Q -10 -30 0 -25 Q 10 -20 20 -15 Z" 
+            fill="url(#brainGradient)" stroke="#FF4081" stroke-width="1.5"/>
+      
+      <!-- 脳のしわ -->
+      <path d="M -15 -30 Q -10 -35 -5 -30" stroke="#FF4081" stroke-width="1" fill="none"/>
+      <path d="M 15 -30 Q 10 -35 5 -30" stroke="#FF4081" stroke-width="1" fill="none"/>
+      <path d="M -20 -20 Q -15 -25 -10 -20" stroke="#FF4081" stroke-width="1" fill="none"/>
+      <path d="M 20 -20 Q 15 -25 10 -20" stroke="#FF4081" stroke-width="1" fill="none"/>
+    </g>
+    
+    <!-- ストロー -->
+    <g transform="translate(25, -20)">
+      <!-- ストローの本体 -->
+      <rect x="-2" y="-25" width="4" height="60" fill="url(#strawGradient)" stroke="#FF8C00" stroke-width="1" rx="2"/>
+      
+      <!-- ストローの曲がり部分 -->
+      <path d="M 0 -25 Q 15 -25 15 -10 L 15 -5" stroke="url(#strawGradient)" stroke-width="4" fill="none" stroke-linecap="round"/>
+      
+      <!-- ストローの先端 -->
+      <circle cx="15" cy="-5" r="2" fill="url(#strawGradient)" stroke="#FF8C00" stroke-width="1"/>
+      
+      <!-- ストローの縞模様 -->
+      <line x1="-2" y1="-15" x2="2" y2="-15" stroke="#FF8C00" stroke-width="1"/>
+      <line x1="-2" y1="-5" x2="2" y2="-5" stroke="#FF8C00" stroke-width="1"/>
+      <line x1="-2" y1="5" x2="2" y2="5" stroke="#FF8C00" stroke-width="1"/>
+      <line x1="-2" y1="15" x2="2" y2="15" stroke="#FF8C00" stroke-width="1"/>
+    </g>
+    
+    <!-- 泡エフェクト -->
+    <circle cx="-30" cy="-5" r="3" fill="#FFFFFF" opacity="0.7"/>
+    <circle cx="30" cy="0" r="2" fill="#FFFFFF" opacity="0.6"/>
+    <circle cx="-15" cy="25" r="2.5" fill="#FFFFFF" opacity="0.8"/>
+    <circle cx="15" cy="30" r="2" fill="#FFFFFF" opacity="0.5"/>
+    
+    <!-- きらきらエフェクト -->
+    <g transform="translate(-40, -30)" opacity="0.8">
+      <path d="M 0 -3 L 1 0 L 0 3 L -1 0 Z" fill="#FFD700"/>
+      <path d="M -3 0 L 0 1 L 3 0 L 0 -1 Z" fill="#FFD700"/>
+    </g>
+    
+    <g transform="translate(40, -10)" opacity="0.6">
+      <path d="M 0 -2 L 0.7 0 L 0 2 L -0.7 0 Z" fill="#FFD700"/>
+      <path d="M -2 0 L 0 0.7 L 2 0 L 0 -0.7 Z" fill="#FFD700"/>
+    </g>
+  </g>
+</svg>

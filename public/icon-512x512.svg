@@ -1,0 +1,102 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景グラデーション -->
+  <defs>
+    <radialGradient id="bgGradient512" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" style="stop-color:#E3F2FD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#BBDEFB;stop-opacity:1" />
+    </radialGradient>
+    <linearGradient id="brainGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF9999;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF6B9D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA8CC;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="cloudGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#F0F8FF;stop-opacity:0.8" />
+    </linearGradient>
+    <linearGradient id="strawGradient512" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFA500;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景円 -->
+  <circle cx="256" cy="256" r="256" fill="url(#bgGradient512)"/>
+  
+  <!-- 雲の形状 (スケール2.67倍) -->
+  <g transform="translate(256, 256)">
+    <!-- メイン雲ボディ -->
+    <ellipse cx="0" cy="40" rx="134" ry="67" fill="url(#cloudGradient512)" stroke="#E0E0E0" stroke-width="3"/>
+    
+    <!-- 雲の膨らみ -->
+    <circle cx="-67" cy="13" r="48" fill="url(#cloudGradient512)" stroke="#E0E0E0" stroke-width="3"/>
+    <circle cx="67" cy="13" r="48" fill="url(#cloudGradient512)" stroke="#E0E0E0" stroke-width="3"/>
+    <circle cx="0" cy="-13" r="59" fill="url(#cloudGradient512)" stroke="#E0E0E0" stroke-width="3"/>
+    <circle cx="-93" cy="40" r="32" fill="url(#cloudGradient512)" stroke="#E0E0E0" stroke-width="3"/>
+    <circle cx="93" cy="40" r="32" fill="url(#cloudGradient512)" stroke="#E0E0E0" stroke-width="3"/>
+    
+    <!-- 脳みそ形状 (スケール2.67倍) -->
+    <g transform="translate(0, -40)">
+      <!-- 脳の左半球 -->
+      <path d="M -53 -40 Q -93 -67 -80 -93 Q -67 -120 -27 -107 Q 0 -120 13 -93 Q 27 -80 0 -67 Q -27 -53 -53 -40 Z" 
+            fill="url(#brainGradient512)" stroke="#FF4081" stroke-width="4"/>
+      
+      <!-- 脳の右半球 -->
+      <path d="M 53 -40 Q 93 -67 80 -93 Q 67 -120 27 -107 Q 0 -120 -13 -93 Q -27 -80 0 -67 Q 27 -53 53 -40 Z" 
+            fill="url(#brainGradient512)" stroke="#FF4081" stroke-width="4"/>
+      
+      <!-- 脳のしわ -->
+      <path d="M -40 -80 Q -27 -93 -13 -80" stroke="#FF4081" stroke-width="3" fill="none"/>
+      <path d="M 40 -80 Q 27 -93 13 -80" stroke="#FF4081" stroke-width="3" fill="none"/>
+      <path d="M -53 -53 Q -40 -67 -27 -53" stroke="#FF4081" stroke-width="3" fill="none"/>
+      <path d="M 53 -53 Q 40 -67 27 -53" stroke="#FF4081" stroke-width="3" fill="none"/>
+      
+      <!-- 追加の脳のしわ -->
+      <path d="M -27 -67 Q -13 -80 0 -67" stroke="#FF4081" stroke-width="2" fill="none"/>
+      <path d="M 27 -67 Q 13 -80 0 -67" stroke="#FF4081" stroke-width="2" fill="none"/>
+    </g>
+    
+    <!-- ストロー (スケール2.67倍) -->
+    <g transform="translate(67, -53)">
+      <!-- ストローの本体 -->
+      <rect x="-5" y="-67" width="11" height="160" fill="url(#strawGradient512)" stroke="#FF8C00" stroke-width="3" rx="5"/>
+      
+      <!-- ストローの曲がり部分 -->
+      <path d="M 0 -67 Q 40 -67 40 -27 L 40 -13" stroke="url(#strawGradient512)" stroke-width="11" fill="none" stroke-linecap="round"/>
+      
+      <!-- ストローの先端 -->
+      <circle cx="40" cy="-13" r="5" fill="url(#strawGradient512)" stroke="#FF8C00" stroke-width="3"/>
+      
+      <!-- ストローの縞模様 -->
+      <line x1="-5" y1="-40" x2="5" y2="-40" stroke="#FF8C00" stroke-width="3"/>
+      <line x1="-5" y1="-13" x2="5" y2="-13" stroke="#FF8C00" stroke-width="3"/>
+      <line x1="-5" y1="13" x2="5" y2="13" stroke="#FF8C00" stroke-width="3"/>
+      <line x1="-5" y1="40" x2="5" y2="40" stroke="#FF8C00" stroke-width="3"/>
+      <line x1="-5" y1="67" x2="5" y2="67" stroke="#FF8C00" stroke-width="3"/>
+    </g>
+    
+    <!-- 泡エフェクト (スケール2.67倍) -->
+    <circle cx="-80" cy="-13" r="8" fill="#FFFFFF" opacity="0.7"/>
+    <circle cx="80" cy="0" r="5" fill="#FFFFFF" opacity="0.6"/>
+    <circle cx="-40" cy="67" r="7" fill="#FFFFFF" opacity="0.8"/>
+    <circle cx="40" cy="80" r="5" fill="#FFFFFF" opacity="0.5"/>
+    <circle cx="-107" cy="27" r="4" fill="#FFFFFF" opacity="0.9"/>
+    <circle cx="107" cy="-27" r="6" fill="#FFFFFF" opacity="0.4"/>
+    
+    <!-- きらきらエフェクト (スケール2.67倍) -->
+    <g transform="translate(-107, -80)" opacity="0.8">
+      <path d="M 0 -8 L 3 0 L 0 8 L -3 0 Z" fill="#FFD700"/>
+      <path d="M -8 0 L 0 3 L 8 0 L 0 -3 Z" fill="#FFD700"/>
+    </g>
+    
+    <g transform="translate(107, -27)" opacity="0.6">
+      <path d="M 0 -5 L 2 0 L 0 5 L -2 0 Z" fill="#FFD700"/>
+      <path d="M -5 0 L 0 2 L 5 0 L 0 -2 Z" fill="#FFD700"/>
+    </g>
+    
+    <g transform="translate(-53, 107)" opacity="0.7">
+      <path d="M 0 -4 L 1.5 0 L 0 4 L -1.5 0 Z" fill="#FFD700"/>
+      <path d="M -4 0 L 0 1.5 L 4 0 L 0 -1.5 Z" fill="#FFD700"/>
+    </g>
+  </g>
+</svg>
