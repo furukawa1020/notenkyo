@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -19,9 +19,9 @@ export default function AdvancedAnalytics() {
 
   useEffect(() => {
     loadAnalyticsData()
-  }, [])
+  }, [loadAnalyticsData])
 
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = useCallback(async () => {
     try {
       const sessions = await getAllStudySessions()
       const states = await getAllUserStates()
@@ -63,7 +63,7 @@ export default function AdvancedAnalytics() {
     } catch (error) {
       console.error('Analytics data loading failed:', error)
     }
-  }
+  }, [])
 
   const exportData = async () => {
     try {

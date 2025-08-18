@@ -219,7 +219,7 @@ export default function VocabularyPage() {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-800 mb-1">例文</h4>
-                  <p className="text-gray-700 italic">"{currentWord.exampleSentence}"</p>
+                  <p className="text-gray-700 italic">&ldquo;{currentWord.exampleSentence}&rdquo;</p>
                 </div>
                 <div className="flex items-center justify-between text-sm text-gray-500">
                   <span>頻出度: {currentWord.frequency}%</span>

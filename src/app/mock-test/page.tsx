@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -266,7 +266,7 @@ export default function MockTestPage() {
       handleTimeUp()
     }
     return () => clearInterval(timer)
-  }, [isTimerActive, timeLeft])
+  }, [isTimerActive, timeLeft, handleTimeUp])
 
   const startSection = (section: MockTestSection) => {
     setSelectedSection(section)
@@ -300,10 +300,10 @@ export default function MockTestPage() {
     }
   }
 
-  const handleTimeUp = () => {
+  const handleTimeUp = useCallback(() => {
     setIsTimerActive(false)
     completeSection()
-  }
+  }, [])
 
   const completeSection = async () => {
     if (!selectedSection) return

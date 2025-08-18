@@ -149,9 +149,9 @@ export default function WorkingMemoryPage() {
     setNBackSequence(sequence)
     setCurrentStimulusIndex(0)
     playNextStimulus(sequence, 0)
-  }, [level])
+  }, [level, playNextStimulus])
 
-  const playNextStimulus = (sequence: string[], index: number) => {
+  const playNextStimulus = useCallback((sequence: string[], index: number) => {
     if (index >= sequence.length) {
       nextTrial()
       return
@@ -177,7 +177,7 @@ export default function WorkingMemoryPage() {
       }
     }
     speechSynthesis.speak(utterance)
-  }
+  }, [])
 
   const handleNBackResponse = (isMatch: boolean) => {
     if (!awaitingResponse) return
@@ -279,7 +279,7 @@ export default function WorkingMemoryPage() {
     }
   }
 
-  const nextTrial = () => {
+  const nextTrial = useCallback(() => {
     setTrials(prev => prev + 1)
     
     if (trials + 1 >= maxTrials) {
@@ -305,7 +305,7 @@ export default function WorkingMemoryPage() {
         }
       }, 1000)
     }
-  }
+  }, [trials, maxTrials, selectedTask])
 
   const completeTraining = async () => {
     setCurrentPhase('results')
