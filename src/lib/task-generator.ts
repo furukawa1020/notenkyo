@@ -56,7 +56,6 @@ const TASK_TEMPLATES: TaskTemplate[] = [
     requiredFocus: 4,
     adaptiveFeatures: ['ニュアンス理解', '語源分析', '上級コロケーション']
   },
-
   // 文法学習
   {
     id: 'grammar-basic',
@@ -82,7 +81,6 @@ const TASK_TEMPLATES: TaskTemplate[] = [
     requiredFocus: 4,
     adaptiveFeatures: ['時間制限', '解答根拠', '類似問題']
   },
-
   // リスニング
   {
     id: 'listening-part1',
@@ -108,7 +106,6 @@ const TASK_TEMPLATES: TaskTemplate[] = [
     requiredFocus: 4,
     adaptiveFeatures: ['先読み訓練', 'キーワード特定', '推測技術']
   },
-
   // ワーキングメモリ強化
   {
     id: 'wm-basic',
@@ -134,7 +131,6 @@ const TASK_TEMPLATES: TaskTemplate[] = [
     requiredFocus: 5,
     adaptiveFeatures: ['マルチタスク', 'チャンク化', '干渉耐性']
   },
-
   // 回復モード用軽負荷タスク
   {
     id: 'recovery-listen',
@@ -172,61 +168,61 @@ function calculateOptimalLoad(noutenkyoScore: number): number {
 
 // 体調に適したタスクをフィルタリング
 function filterTasksByCondition(
-  templates: TaskTemplate[], 
+  templates: TaskTemplate[],
   userState: UserState,
   noutenkyoScore: number
 ): TaskTemplate[] {
   const optimalLoad = calculateOptimalLoad(noutenkyoScore)
-  
+
   return templates.filter(template => {
     // 認知負荷チェック
     if (template.cognitiveLoad > optimalLoad) return false
-    
+
     // エネルギーレベルチェック
     if (template.requiredEnergy > userState.energy) return false
-    
+
     // 集中力レベルチェック
     if (template.requiredFocus > userState.focus) return false
-    
+
     // 不安レベルが高い場合は難易度を下げる
     if (userState.anxiety >= 4 && template.difficulty === 'advanced') return false
-    
+
     return true
   })
 }
 
 // 学習タイプのバランスを考慮した選択
 function selectBalancedTasks(
-  availableTasks: TaskTemplate[], 
+  availableTasks: TaskTemplate[],
   maxTasks: number
 ): TaskTemplate[] {
   const taskTypes = ['vocabulary', 'grammar', 'listening', 'reading', 'working-memory']
   const selectedTasks: TaskTemplate[] = []
-  
+
   // 各タイプから均等に選択
   for (let i = 0; i < maxTasks; i++) {
     const targetType = taskTypes[i % taskTypes.length]
-    const tasksOfType = availableTasks.filter(t => 
+    const tasksOfType = availableTasks.filter(t =>
       t.type === targetType && !selectedTasks.includes(t)
     )
-    
+
     if (tasksOfType.length > 0) {
       // 現在の体調に最も適したタスクを選択
-      const bestTask = tasksOfType.reduce((best, current) => 
+      const bestTask = tasksOfType.reduce((best, current) =>
         current.cognitiveLoad < best.cognitiveLoad ? current : best
       )
       selectedTasks.push(bestTask)
     }
   }
-  
+
   // 足りない分を他のタイプから補完
   while (selectedTasks.length < maxTasks && selectedTasks.length < availableTasks.length) {
     const remainingTasks = availableTasks.filter(t => !selectedTasks.includes(t))
     if (remainingTasks.length === 0) break
-    
+
     selectedTasks.push(remainingTasks[0])
   }
-  
+
   return selectedTasks
 }
 
@@ -241,7 +237,7 @@ function generateADHDOptimizedTasks(
     estimatedMinutes: Math.max(5, Math.floor(template.estimatedMinutes * 0.7)), // 時間短縮
     adaptiveFeatures: [...template.adaptiveFeatures, 'マイクロラーニング', 'ゲーミフィケーション']
   }))
-  
+
   return adhdOptimizedTemplates
 }
 
@@ -256,8 +252,30 @@ function generateDepressionOptimizedTasks(
     cognitiveLoad: Math.max(1, template.cognitiveLoad - 2), // 負荷軽減
     adaptiveFeatures: [...template.adaptiveFeatures, '達成感重視', '小さな成功', 'ポジティブフィードバック']
   }))
-  
+
   return depressionOptimizedTemplates
+}
+
+// TypeをPartに変換するヘルパー関数
+function convertTypeToPartMap(type: string): 'vocabulary' | 'grammar' | 'listening' | 'reading' | 'mocktest' | 'workingmemory' | 'recovery' {
+  switch (type) {
+    case 'working-memory':
+      return 'workingmemory'
+    case 'vocabulary':
+    case 'grammar':
+    case 'listening':
+    case 'reading':
+      return type
+    default:
+      return 'vocabulary'
+  }
+}
+
+// LoadレベルをCognitiveLoadから決定するヘルパー関数
+function convertCognitiveLoadToLoad(cognitiveLoad: number): 'light' | 'medium' | 'heavy' {
+  if (cognitiveLoad <= 3) return 'light'
+  if (cognitiveLoad <= 6) return 'medium'
+  return 'heavy'
 }
 
 // メイン問題生成関数
@@ -281,6 +299,7 @@ export function generateOptimizedTasks(
       anxiety: 3,
       sleepHours: 7,
       weather: 'cloudy',
+      temperature: 20, // temperatureプロパティを追加
       note: ''
     },
     specialMode = null
@@ -303,12 +322,16 @@ export function generateOptimizedTasks(
   // バランスよくタスクを選択
   const selectedTemplates = selectBalancedTasks(availableTasks, maxDailyTasks)
 
-  // Taskオブジェクトに変換
+  // Taskオブジェクトに変換（型定義に合わせて修正）
   return selectedTemplates.map((template, index) => ({
     id: `task-${Date.now()}-${index}`,
-    type: template.type,
     title: template.title,
     description: template.description,
+    part: convertTypeToPartMap(template.type), // partプロパティを追加
+    load: convertCognitiveLoadToLoad(template.cognitiveLoad), // loadプロパティを追加
+    lengthMinutes: template.estimatedMinutes, // lengthMinutesプロパティを追加
+    tags: template.adaptiveFeatures, // tagsプロパティを追加
+    type: template.type,
     difficulty: template.difficulty,
     estimatedMinutes: template.estimatedMinutes,
     cognitiveLoad: template.cognitiveLoad,
@@ -346,7 +369,7 @@ export function adjustDifficultyBasedOnHistory(
 // 問題生成ロジックの説明を取得
 export function getTaskGenerationExplanation(noutenkyoScore: number): string {
   const load = calculateOptimalLoad(noutenkyoScore)
-  
+
   if (noutenkyoScore >= 80) {
     return `🚀 絶好調モード（スコア: ${noutenkyoScore}）
     - 高負荷学習タスクを3-4個
@@ -381,7 +404,7 @@ export function debugTaskGeneration(
 ): any {
   const optimalLoad = calculateOptimalLoad(noutenkyoScore)
   const availableTasks = filterTasksByCondition(TASK_TEMPLATES, userState, noutenkyoScore)
-  
+
   return {
     input: {
       noutenkyoScore,

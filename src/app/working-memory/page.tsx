@@ -170,7 +170,7 @@ export default function WorkingMemoryPage() {
   }, [selectedTask, sessionStartTime, studyProgress, maxTrials, score])
 
   // Sequence課題
-  const startSequenceTrial = () => {
+  const startSequenceTrial = useCallback(() => {
     const sequence = Array.from({ length: level + 2 }, () => 
       wordStimuli[Math.floor(Math.random() * wordStimuli.length)]
     )
@@ -179,10 +179,10 @@ export default function WorkingMemoryPage() {
     setShowingSequence(true)
     
     setTimeout(() => setShowingSequence(false), sequence.length * 1500)
-  }
+  }, [level])
 
   // Spatial課題
-  const startSpatialTrial = () => {
+  const startSpatialTrial = useCallback(() => {
     const pattern = Array.from({ length: level + 3 }, () => 
       Math.floor(Math.random() * 9)
     )
@@ -191,16 +191,16 @@ export default function WorkingMemoryPage() {
     setShowingSpatial(true)
     
     setTimeout(() => setShowingSpatial(false), pattern.length * 1000)
-  }
+  }, [level])
 
   // Dual-Task課題
-  const startDualTaskTrial = () => {
+  const startDualTaskTrial = useCallback(() => {
     const problem = mathProblems[Math.floor(Math.random() * mathProblems.length)]
     setCurrentMathProblem(problem)
     setMathAnswer('')
     setLettersToRemember([])
     setCurrentLetter('')
-  }
+  }, [])
 
   const nextTrial = useCallback(() => {
     setTrials(prev => prev + 1)
