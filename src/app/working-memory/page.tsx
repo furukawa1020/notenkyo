@@ -142,15 +142,6 @@ export default function WorkingMemoryPage() {
   }
 
   // N-Back課題
-  const startNBackTrial = useCallback(() => {
-    const sequence = Array.from({ length: level + 10 }, () => 
-      audioStimuli[Math.floor(Math.random() * audioStimuli.length)]
-    )
-    setNBackSequence(sequence)
-    setCurrentStimulusIndex(0)
-    playNextStimulus(sequence, 0)
-  }, [level, playNextStimulus])
-
   const playNextStimulus = useCallback((sequence: string[], index: number) => {
     if (index >= sequence.length) {
       nextTrial()
@@ -178,6 +169,15 @@ export default function WorkingMemoryPage() {
     }
     speechSynthesis.speak(utterance)
   }, [level, nextTrial])
+
+  const startNBackTrial = useCallback(() => {
+    const sequence = Array.from({ length: level + 10 }, () => 
+      audioStimuli[Math.floor(Math.random() * audioStimuli.length)]
+    )
+    setNBackSequence(sequence)
+    setCurrentStimulusIndex(0)
+    playNextStimulus(sequence, 0)
+  }, [level, playNextStimulus])
 
   const handleNBackResponse = (isMatch: boolean) => {
     if (!awaitingResponse) return
