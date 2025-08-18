@@ -236,7 +236,7 @@ export default function WorkingMemoryPage() {
         }
       }, 1000)
     }
-  }, [trials, maxTrials, selectedTask, completeTraining, level, audioStimuli, startSequenceTrial, startSpatialTrial, startDualTaskTrial])
+  }, [trials, maxTrials, selectedTask, completeTraining, level, startSequenceTrial, startSpatialTrial, startDualTaskTrial])
 
   // N-Back課題
   const playNextStimulus = useCallback((sequence: string[], index: number) => {
