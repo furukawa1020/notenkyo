@@ -256,6 +256,47 @@ export default function MockTestPage() {
     getStudyProgress().then(setStudyProgress)
   }, [])
 
+  const completeSection = useCallback(async () => {
+    if (!selectedSection) return
+    
+    setIsTimerActive(false)
+    
+    // 結果計算
+    let correctCount = 0
+    selectedSection.questions.forEach(question => {
+      const userAnswer = selectedAnswers[question.id]
+      if (userAnswer === question.correctAnswer) {
+        correctCount++
+      }
+    })
+    
+    const accuracy = (correctCount / selectedSection.questions.length) * 100
+    const sessionEndTime = new Date()
+    
+    // セッション記録
+    await recordSession({
+      taskId: `mocktest-${selectedSection.id}`,
+      startTime: sessionStartTime,
+      endTime: sessionEndTime,
+      score: accuracy,
+      correctAnswers: correctCount,
+      totalQuestions: selectedSection.questions.length,
+      studyType: selectedSection.type === 'listening' ? 'listening' : 'reading'
+    })
+    
+    // 進捗更新
+    const progressKey = selectedSection.type === 'listening' ? 'listeningLevel' : 'readingLevel'
+    const newProgress = {
+      ...studyProgress,
+      [progressKey]: Math.min(studyProgress[progressKey] + Math.floor(accuracy / 10), 100),
+      totalStudyTime: studyProgress.totalStudyTime + Math.floor((sessionEndTime.getTime() - sessionStartTime.getTime()) / 60000)
+    }
+    
+    await saveStudyProgress(newProgress)
+    setStudyProgress(newProgress)
+    setShowResults(true)
+  }, [selectedSection, selectedAnswers, sessionStartTime, studyProgress])
+
   const handleTimeUp = useCallback(() => {
     setIsTimerActive(false)
     completeSection()
@@ -304,47 +345,6 @@ export default function MockTestPage() {
       setCurrentQuestionIndex(prev => prev - 1)
     }
   }
-
-  const completeSection = useCallback(async () => {
-    if (!selectedSection) return
-    
-    setIsTimerActive(false)
-    
-    // 結果計算
-    let correctCount = 0
-    selectedSection.questions.forEach(question => {
-      const userAnswer = selectedAnswers[question.id]
-      if (userAnswer === question.correctAnswer) {
-        correctCount++
-      }
-    })
-    
-    const accuracy = (correctCount / selectedSection.questions.length) * 100
-    const sessionEndTime = new Date()
-    
-    // セッション記録
-    await recordSession({
-      taskId: `mocktest-${selectedSection.id}`,
-      startTime: sessionStartTime,
-      endTime: sessionEndTime,
-      score: accuracy,
-      correctAnswers: correctCount,
-      totalQuestions: selectedSection.questions.length,
-      studyType: selectedSection.type === 'listening' ? 'listening' : 'reading'
-    })
-    
-    // 進捗更新
-    const progressKey = selectedSection.type === 'listening' ? 'listeningLevel' : 'readingLevel'
-    const newProgress = {
-      ...studyProgress,
-      [progressKey]: Math.min(studyProgress[progressKey] + Math.floor(accuracy / 10), 100),
-      totalStudyTime: studyProgress.totalStudyTime + Math.floor((sessionEndTime.getTime() - sessionStartTime.getTime()) / 60000)
-    }
-    
-    await saveStudyProgress(newProgress)
-    setStudyProgress(newProgress)
-    setShowResults(true)
-  }, [selectedSection, selectedAnswers, sessionStartTime, studyProgress])
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
