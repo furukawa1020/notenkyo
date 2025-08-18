@@ -17,10 +17,6 @@ export default function AdvancedAnalytics() {
   const [personalizedPlan, setPersonalizedPlan] = useState<any>(null)
   const [learningPredictions, setLearningPredictions] = useState<any>({})
 
-  useEffect(() => {
-    loadAnalyticsData()
-  }, [loadAnalyticsData])
-
   const loadAnalyticsData = useCallback(async () => {
     try {
       const sessions = await getAllStudySessions()
@@ -33,19 +29,20 @@ export default function AdvancedAnalytics() {
 
       // 学習パフォーマンスの記録
       sessions.forEach(session => {
-        adaptiveSystem.recordPerformance(
-          session.studyType,
-          session.score || 0,
-          session.duration,
-          session.noutenkyoScore || 50
-        )
+        if (session.taskType && session.score !== undefined) {
+          adaptiveSystem.recordPerformance(
+            session.taskType,
+            session.score,
+            session.studyTime
+          )
+        }
       })
 
-      // 最新の体調状態で個人化プランを生成
+      // 個人化プランの生成
       if (states.length > 0) {
         const latestState = states[states.length - 1]
         const plan = generatePersonalizedPlan(
-          latestState.noutenkyoScore || 50,
+          latestState,
           sessions,
           { maxDailyTasks: 4 }
         )
@@ -63,7 +60,11 @@ export default function AdvancedAnalytics() {
     } catch (error) {
       console.error('Analytics data loading failed:', error)
     }
-  }, [])
+  }, [adaptiveSystem])
+
+  useEffect(() => {
+    loadAnalyticsData()
+  }, [loadAnalyticsData])
 
   const exportData = async () => {
     try {

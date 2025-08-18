@@ -303,9 +303,9 @@ export default function MockTestPage() {
   const handleTimeUp = useCallback(() => {
     setIsTimerActive(false)
     completeSection()
-  }, [])
+  }, [completeSection])
 
-  const completeSection = async () => {
+  const completeSection = useCallback(async () => {
     if (!selectedSection) return
     
     setIsTimerActive(false)
@@ -344,7 +344,7 @@ export default function MockTestPage() {
     await saveStudyProgress(newProgress)
     setStudyProgress(newProgress)
     setShowResults(true)
-  }
+  }, [selectedSection, selectedAnswers, sessionStartTime])
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)

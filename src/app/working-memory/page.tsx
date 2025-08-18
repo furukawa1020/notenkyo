@@ -177,7 +177,7 @@ export default function WorkingMemoryPage() {
       }
     }
     speechSynthesis.speak(utterance)
-  }, [])
+  }, [level, nextTrial])
 
   const handleNBackResponse = (isMatch: boolean) => {
     if (!awaitingResponse) return
@@ -305,9 +305,9 @@ export default function WorkingMemoryPage() {
         }
       }, 1000)
     }
-  }, [trials, maxTrials, selectedTask])
+  }, [trials, maxTrials, selectedTask, completeTraining])
 
-  const completeTraining = async () => {
+  const completeTraining = useCallback(async () => {
     setCurrentPhase('results')
     
     if (!selectedTask) return
@@ -333,7 +333,7 @@ export default function WorkingMemoryPage() {
     
     await saveStudyProgress(newProgress)
     setStudyProgress(newProgress)
-  }
+  }, [selectedTask, sessionStartTime, studyProgress])
 
   const resetTraining = () => {
     setSelectedTask(null)
