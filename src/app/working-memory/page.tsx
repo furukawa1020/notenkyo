@@ -141,6 +141,42 @@ export default function WorkingMemoryPage() {
     }
   }
 
+  const nextTrial = useCallback(() => {
+    setTrials(prev => prev + 1)
+    
+    if (trials + 1 >= maxTrials) {
+      completeTraining()
+    } else {
+      // 次のトライアルを開始
+      setTimeout(() => {
+        if (selectedTask) {
+          switch (selectedTask.type) {
+            case 'n-back':
+              // N-Back課題の開始（インライン化で循環参照回避）
+              const sequence = Array.from({ length: level + 10 }, () => 
+                audioStimuli[Math.floor(Math.random() * audioStimuli.length)]
+              )
+              setNBackSequence(sequence)
+              setCurrentStimulusIndex(0)
+              // playNextStimulusを直接呼び出さずにstateで管理
+              setCurrentStimulusIndex(0)
+              setIsStimuliPlaying(true)
+              break
+            case 'dual-task':
+              startDualTaskTrial()
+              break
+            case 'sequence':
+              startSequenceTrial()
+              break
+            case 'spatial':
+              startSpatialTrial()
+              break
+          }
+        }
+      }, 1000)
+    }
+  }, [trials, maxTrials, selectedTask, completeTraining, level, audioStimuli])
+
   // N-Back課題
   const playNextStimulus = useCallback((sequence: string[], index: number) => {
     if (index >= sequence.length) {
@@ -278,34 +314,6 @@ export default function WorkingMemoryPage() {
       nextTrial()
     }
   }
-
-  const nextTrial = useCallback(() => {
-    setTrials(prev => prev + 1)
-    
-    if (trials + 1 >= maxTrials) {
-      completeTraining()
-    } else {
-      // 次のトライアルを開始
-      setTimeout(() => {
-        if (selectedTask) {
-          switch (selectedTask.type) {
-            case 'n-back':
-              startNBackTrial()
-              break
-            case 'dual-task':
-              startDualTaskTrial()
-              break
-            case 'sequence':
-              startSequenceTrial()
-              break
-            case 'spatial':
-              startSpatialTrial()
-              break
-          }
-        }
-      }, 1000)
-    }
-  }, [trials, maxTrials, selectedTask, completeTraining, startNBackTrial, startSpatialTrial, startSequenceTrial, startDualTaskTrial])
 
   const completeTraining = useCallback(async () => {
     setCurrentPhase('results')
