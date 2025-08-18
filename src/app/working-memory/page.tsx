@@ -305,7 +305,7 @@ export default function WorkingMemoryPage() {
         }
       }, 1000)
     }
-  }, [trials, maxTrials, selectedTask, completeTraining, startNBackTrial, startSpatialTrial])
+  }, [trials, maxTrials, selectedTask, completeTraining, startNBackTrial, startSpatialTrial, startSequenceTrial, startDualTaskTrial])
 
   const completeTraining = useCallback(async () => {
     setCurrentPhase('results')

@@ -256,6 +256,11 @@ export default function MockTestPage() {
     getStudyProgress().then(setStudyProgress)
   }, [])
 
+  const handleTimeUp = useCallback(() => {
+    setIsTimerActive(false)
+    completeSection()
+  }, [completeSection])
+
   useEffect(() => {
     let timer: NodeJS.Timeout
     if (isTimerActive && timeLeft > 0) {
@@ -299,11 +304,6 @@ export default function MockTestPage() {
       setCurrentQuestionIndex(prev => prev - 1)
     }
   }
-
-  const handleTimeUp = useCallback(() => {
-    setIsTimerActive(false)
-    completeSection()
-  }, [completeSection])
 
   const completeSection = useCallback(async () => {
     if (!selectedSection) return
