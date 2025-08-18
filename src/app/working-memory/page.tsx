@@ -141,6 +141,67 @@ export default function WorkingMemoryPage() {
     }
   }
 
+  const completeTraining = useCallback(async () => {
+    setCurrentPhase('results')
+    
+    if (!selectedTask) return
+    
+    const sessionEndTime = new Date()
+    const accuracy = (score / maxTrials) * 100
+    
+    await recordSession({
+      taskId: `wm-${selectedTask.id}`,
+      startTime: sessionStartTime,
+      endTime: sessionEndTime,
+      score: accuracy,
+      correctAnswers: score,
+      totalQuestions: maxTrials,
+      studyType: 'recovery' // ワーキングメモリは回復モードの一部として分類
+    })
+    
+    // 学習進捗の更新
+    const newProgress = {
+      ...studyProgress,
+      totalStudyTime: studyProgress.totalStudyTime + Math.floor((sessionEndTime.getTime() - sessionStartTime.getTime()) / 60000)
+    }
+    
+    await saveStudyProgress(newProgress)
+    setStudyProgress(newProgress)
+  }, [selectedTask, sessionStartTime, studyProgress, maxTrials, score])
+
+  // Sequence課題
+  const startSequenceTrial = () => {
+    const sequence = Array.from({ length: level + 2 }, () => 
+      wordStimuli[Math.floor(Math.random() * wordStimuli.length)]
+    )
+    setSequenceToRemember(sequence)
+    setUserSequence([])
+    setShowingSequence(true)
+    
+    setTimeout(() => setShowingSequence(false), sequence.length * 1500)
+  }
+
+  // Spatial課題
+  const startSpatialTrial = () => {
+    const pattern = Array.from({ length: level + 3 }, () => 
+      Math.floor(Math.random() * 9)
+    )
+    setSpatialPattern(pattern)
+    setUserSpatialPattern([])
+    setShowingSpatial(true)
+    
+    setTimeout(() => setShowingSpatial(false), pattern.length * 1000)
+  }
+
+  // Dual-Task課題
+  const startDualTaskTrial = () => {
+    const problem = mathProblems[Math.floor(Math.random() * mathProblems.length)]
+    setCurrentMathProblem(problem)
+    setMathAnswer('')
+    setLettersToRemember([])
+    setCurrentLetter('')
+  }
+
   const nextTrial = useCallback(() => {
     setTrials(prev => prev + 1)
     
@@ -175,7 +236,7 @@ export default function WorkingMemoryPage() {
         }
       }, 1000)
     }
-  }, [trials, maxTrials, selectedTask, completeTraining, level, audioStimuli])
+  }, [trials, maxTrials, selectedTask, completeTraining, level, audioStimuli, startSequenceTrial, startSpatialTrial, startDualTaskTrial])
 
   // N-Back課題
   const playNextStimulus = useCallback((sequence: string[], index: number) => {
@@ -229,15 +290,6 @@ export default function WorkingMemoryPage() {
     setAwaitingResponse(false)
   }
 
-  // Dual-Task課題
-  const startDualTaskTrial = () => {
-    const problem = mathProblems[Math.floor(Math.random() * mathProblems.length)]
-    setCurrentMathProblem(problem)
-    setMathAnswer('')
-    setLettersToRemember([])
-    setCurrentLetter('')
-  }
-
   const submitMathAnswer = () => {
     if (currentMathProblem && parseInt(mathAnswer) === currentMathProblem.answer) {
       setScore(prev => prev + 1)
@@ -261,18 +313,6 @@ export default function WorkingMemoryPage() {
     setTimeout(() => showLetters(letters, index + 1), 1500)
   }
 
-  // Sequence課題
-  const startSequenceTrial = () => {
-    const sequence = Array.from({ length: level + 2 }, () => 
-      wordStimuli[Math.floor(Math.random() * wordStimuli.length)]
-    )
-    setSequenceToRemember(sequence)
-    setUserSequence([])
-    setShowingSequence(true)
-    
-    setTimeout(() => setShowingSequence(false), sequence.length * 1500)
-  }
-
   const addToUserSequence = (word: string) => {
     if (showingSequence) return
     
@@ -286,18 +326,6 @@ export default function WorkingMemoryPage() {
       }
       nextTrial()
     }
-  }
-
-  // Spatial課題
-  const startSpatialTrial = () => {
-    const pattern = Array.from({ length: level + 3 }, () => 
-      Math.floor(Math.random() * 9)
-    )
-    setSpatialPattern(pattern)
-    setUserSpatialPattern([])
-    setShowingSpatial(true)
-    
-    setTimeout(() => setShowingSpatial(false), pattern.length * 1000)
   }
 
   const addToSpatialPattern = (position: number) => {
@@ -314,34 +342,6 @@ export default function WorkingMemoryPage() {
       nextTrial()
     }
   }
-
-  const completeTraining = useCallback(async () => {
-    setCurrentPhase('results')
-    
-    if (!selectedTask) return
-    
-    const sessionEndTime = new Date()
-    const accuracy = (score / maxTrials) * 100
-    
-    await recordSession({
-      taskId: `wm-${selectedTask.id}`,
-      startTime: sessionStartTime,
-      endTime: sessionEndTime,
-      score: accuracy,
-      correctAnswers: score,
-      totalQuestions: maxTrials,
-      studyType: 'recovery' // ワーキングメモリは回復モードの一部として分類
-    })
-    
-    // 学習進捗の更新
-    const newProgress = {
-      ...studyProgress,
-      totalStudyTime: studyProgress.totalStudyTime + Math.floor((sessionEndTime.getTime() - sessionStartTime.getTime()) / 60000)
-    }
-    
-    await saveStudyProgress(newProgress)
-    setStudyProgress(newProgress)
-  }, [selectedTask, sessionStartTime, studyProgress, maxTrials, score])
 
   const resetTraining = () => {
     setSelectedTask(null)
