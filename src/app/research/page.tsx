@@ -59,11 +59,6 @@ export default function ResearchPage() {
     streakDays: 0
   })
 
-  useEffect(() => {
-    loadResearchData()
-    getStudyProgress().then(setStudyProgress)
-  }, [loadResearchData])
-
   const loadResearchData = useCallback(async () => {
     try {
       const kpiHistory = await getKPIHistory(30)
@@ -113,6 +108,11 @@ export default function ResearchPage() {
       console.error('研究データの読み込みエラー:', error)
     }
   }, [])
+
+  useEffect(() => {
+    loadResearchData()
+    getStudyProgress().then(setStudyProgress)
+  }, [loadResearchData])
 
   const calculateCorrelation = (x: number[], y: number[]): number => {
     const n = Math.min(x.length, y.length)
