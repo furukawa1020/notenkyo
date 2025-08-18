@@ -344,7 +344,7 @@ export default function MockTestPage() {
     await saveStudyProgress(newProgress)
     setStudyProgress(newProgress)
     setShowResults(true)
-  }, [selectedSection, selectedAnswers, sessionStartTime])
+  }, [selectedSection, selectedAnswers, sessionStartTime, studyProgress])
 
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)

@@ -305,7 +305,7 @@ export default function WorkingMemoryPage() {
         }
       }, 1000)
     }
-  }, [trials, maxTrials, selectedTask, completeTraining])
+  }, [trials, maxTrials, selectedTask, completeTraining, startNBackTrial, startSpatialTrial])
 
   const completeTraining = useCallback(async () => {
     setCurrentPhase('results')
@@ -333,7 +333,7 @@ export default function WorkingMemoryPage() {
     
     await saveStudyProgress(newProgress)
     setStudyProgress(newProgress)
-  }, [selectedTask, sessionStartTime, studyProgress])
+  }, [selectedTask, sessionStartTime, studyProgress, maxTrials, score])
 
   const resetTraining = () => {
     setSelectedTask(null)

@@ -33,7 +33,8 @@ export default function AdvancedAnalytics() {
           adaptiveSystem.recordPerformance(
             session.taskType,
             session.score,
-            session.studyTime
+            session.studyTime,
+            session.noutenkyoScore || 50
           )
         }
       })
