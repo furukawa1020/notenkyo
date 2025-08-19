@@ -505,3 +505,42 @@ export async function markNotificationAsRead(id: string): Promise<void> {
     getRequest.onerror = () => reject(getRequest.error)
   })
 }
+
+// タスク進捗の保存
+export async function saveTaskProgress(
+  taskId: string, 
+  progress: {
+    completed: boolean
+    correctAnswers?: number
+    totalQuestions?: number
+    score?: number
+    timeSpent?: number
+  }
+): Promise<void> {
+  const db = await initDB()
+  const transaction = db.transaction(['tasks'], 'readwrite')
+  const store = transaction.objectStore('tasks')
+  
+  return new Promise((resolve, reject) => {
+    const getRequest = store.get(taskId)
+    getRequest.onsuccess = () => {
+      const task = getRequest.result
+      if (task) {
+        const updatedTask = { 
+          ...task, 
+          completed: progress.completed,
+          progress: {
+            ...task.progress,
+            ...progress
+          }
+        }
+        const putRequest = store.put(updatedTask)
+        putRequest.onsuccess = () => resolve()
+        putRequest.onerror = () => reject(putRequest.error)
+      } else {
+        reject(new Error('Task not found'))
+      }
+    }
+    getRequest.onerror = () => reject(getRequest.error)
+  })
+}
