@@ -673,7 +673,7 @@ export default function TOEICLearningApp() {
       </main>
 
       {/* ナビゲーション */}
-      {currentView !== 'setup' && currentView !== 'learning' && (
+      {(currentView === 'dashboard' || currentView === 'statistics' || currentView === 'settings') && (
         <nav className="fixed bottom-0 left-0 right-0 bg-white border-t shadow-lg">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex items-center justify-around py-2">
