@@ -117,7 +117,12 @@ export default function VocabularyPage() {
     }))
     
     // 学習進捗を保存
-    saveTaskProgress(`vocabulary-${currentWord.id}`, isCorrect ? 100 : 0, currentWord.word)
+    saveTaskProgress(`vocabulary-${currentWord.id}`, {
+      completed: true,
+      correctAnswers: isCorrect ? 1 : 0,
+      totalQuestions: 1,
+      score: isCorrect ? 100 : 0
+    })
   }
 
   const toggleMeaning = () => {
