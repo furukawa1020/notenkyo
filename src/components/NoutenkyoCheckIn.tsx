@@ -434,6 +434,28 @@ export default function NoutenkyoCheckIn({ onComplete, onSkip }: NoutenkyoCheckI
               
               <Progress value={noutenkyoScore} className="h-4" />
               
+              {/* 推奨学習時間の表示 */}
+              <div className="bg-white/60 rounded-lg p-4">
+                <div className="text-sm font-medium text-gray-700 mb-2">推奨学習時間</div>
+                <div className="text-2xl font-bold text-green-600">
+                  {noutenkyoScore >= 90 ? '180分 (3時間)' :
+                   noutenkyoScore >= 80 ? '120分 (2時間)' :
+                   noutenkyoScore >= 70 ? '90分 (1.5時間)' :
+                   noutenkyoScore >= 60 ? '60分 (1時間)' :
+                   noutenkyoScore >= 50 ? '45分' :
+                   noutenkyoScore >= 40 ? '30分' :
+                   noutenkyoScore >= 30 ? '20分' :
+                   noutenkyoScore >= 20 ? '15分' : '10分'}
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  範囲: {noutenkyoScore >= 85 ? '1-4時間' :
+                         noutenkyoScore >= 70 ? '45分-3時間' :
+                         noutenkyoScore >= 55 ? '30分-2時間' :
+                         noutenkyoScore >= 40 ? '20分-1.5時間' :
+                         noutenkyoScore >= 25 ? '15分-1時間' : '5-30分'}
+                </div>
+              </div>
+              
               <Alert className={`border-${recommendation.color}-200 bg-${recommendation.color}-50`}>
                 <CheckCircle className="h-4 w-4" />
                 <AlertTitle className={`text-${recommendation.color}-700`}>
