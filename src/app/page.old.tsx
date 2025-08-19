@@ -28,7 +28,7 @@ export default function HomePage() {
         setNoutenkyoScore(score)
         
         if (todayTasks.length === 0) {
-          const newTasks = generateDailyTasks(score)
+          const newTasks = await generateDailyTasks(score)
           setTasks(newTasks)
         } else {
           setTasks(todayTasks)
@@ -41,11 +41,11 @@ export default function HomePage() {
     loadUserData()
   }, [])
 
-  const handleCheckInComplete = (newState: UserState) => {
+  const handleCheckInComplete = async (newState: UserState) => {
     setUserState(newState)
     const score = calculateNoutenkyoScore(newState)
     setNoutenkyoScore(score)
-    const newTasks = generateDailyTasks(score)
+    const newTasks = await generateDailyTasks(score)
     setTasks(newTasks)
     setShowCheckIn(false)
   }

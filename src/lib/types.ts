@@ -10,17 +10,36 @@ export interface UserState {
   note: string
 }
 
+export interface NotenkyoScore {
+  mood: number // 1-10
+  energy: number // 1-10
+  focus: number // 1-10
+  motivation: number // 1-10
+  weather: number // 1-10
+  total: number // 計算された総合スコア
+}
+
 export interface Task {
   id: string
   title: string
   description: string
+  type: 'vocabulary' | 'grammar' | 'listening' | 'reading' | 'mocktest' | 'workingmemory' | 'recovery'
   part: 'vocabulary' | 'grammar' | 'listening' | 'reading' | 'mocktest' | 'workingmemory' | 'recovery'
   load: 'light' | 'medium' | 'heavy'
   lengthMinutes: number
   tags: string[]
   completed: boolean
-  score?: number
+  score?: number | null
   date?: string
+  
+  // 実際のコンテンツ生成用の追加プロパティ
+  difficulty?: 'beginner' | 'intermediate' | 'advanced'
+  estimatedMinutes?: number
+  cognitiveLoad?: number
+  adaptiveFeatures?: string[]
+  generatedAt?: string
+  content?: any // 実際の学習コンテンツデータ
+  timeSpent?: number
 }
 
 export interface Session {

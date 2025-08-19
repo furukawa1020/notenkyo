@@ -1,109 +1,84 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { 
-  Brain, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Volume2,
-  RotateCcw,
-  ArrowRight,
-  Target,
-  Zap
-} from 'lucide-react'
-import { TOEICQuestionGenerator, QuestionBase } from '@/lib/question-generator'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { QuestionGenerator, QuestionBase } from '@/lib/question-generator'
+import { getUserState } from '@/lib/storage'
+import { calculateNoutenkyoScore } from '@/lib/noutenkyo-engine'
 
 export default function QuestionTestPage() {
   const [currentQuestion, setCurrentQuestion] = useState<QuestionBase | null>(null)
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
+  const [selectedAnswer, setSelectedAnswer] = useState<string>('')
   const [showResult, setShowResult] = useState(false)
   const [score, setScore] = useState(0)
-  const [questionCount, setQuestionCount] = useState(0)
-  const [isLoading, setIsLoading] = useState(false)
-  const [timeSpent, setTimeSpent] = useState(0)
-  const [startTime, setStartTime] = useState<number | null>(null)
-
-  // のうてんきょスコア（デモ用）
-  const noutenkyoScore = 75
+  const [totalQuestions, setTotalQuestions] = useState(0)
+  const [noutenkyoScore, setNoutenkyoScore] = useState(50)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   useEffect(() => {
-    generateNewQuestion()
+    const loadData = async () => {
+      const userState = await getUserState()
+      if (userState) {
+        const score = calculateNoutenkyoScore(userState)
+        setNoutenkyoScore(score)
+      }
+      generateNewQuestion()
+    }
+    loadData()
   }, [])
 
-  useEffect(() => {
-    let interval: any
-    if (startTime && !showResult) {
-      interval = setInterval(() => {
-        setTimeSpent(Math.floor((Date.now() - startTime) / 1000))
-      }, 1000)
-    }
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [startTime, showResult])
-
-  const generateNewQuestion = () => {
-    setIsLoading(true)
+  const generateNewQuestion = async () => {
     try {
-      // ランダムで問題タイプを選択
-      const types: ('vocabulary' | 'grammar' | 'listening')[] = ['vocabulary', 'grammar', 'listening']
-      const randomType = types[Math.floor(Math.random() * types.length)]
-      
-      let question: QuestionBase
-      
+      setIsGenerating(true)
+      setSelectedAnswer('')
+      setShowResult(false)
+
+      let question: QuestionBase | null = null
+
+      const questionTypes = ['vocabulary', 'grammar', 'listening', 'reading'] as const
+      const randomType = questionTypes[Math.floor(Math.random() * questionTypes.length)]
+
       switch (randomType) {
         case 'vocabulary':
-          question = TOEICQuestionGenerator.generateVocabularyQuestion(
-            noutenkyoScore >= 80 ? 'hard' : noutenkyoScore >= 50 ? 'medium' : 'easy'
+          question = QuestionGenerator.generateVocabularyQuestion(
+            noutenkyoScore > 70 ? 'hard' : noutenkyoScore > 40 ? 'medium' : 'easy'
           )
           break
         case 'grammar':
-          question = TOEICQuestionGenerator.generateGrammarQuestion(
-            noutenkyoScore >= 80 ? 'hard' : noutenkyoScore >= 50 ? 'medium' : 'easy'
+          question = QuestionGenerator.generateGrammarQuestion(
+            noutenkyoScore > 70 ? 'advanced' : noutenkyoScore > 40 ? 'intermediate' : 'beginner'
           )
           break
         case 'listening':
-          const part = Math.floor(Math.random() * 2) + 1 as 1 | 2
-          question = TOEICQuestionGenerator.generateListeningQuestion(
-            part,
-            noutenkyoScore >= 80 ? 'hard' : noutenkyoScore >= 50 ? 'medium' : 'easy'
+          question = QuestionGenerator.generateListeningQuestion(
+            noutenkyoScore > 70 ? 'part4' : noutenkyoScore > 40 ? 'part3' : 'part1'
           )
           break
         default:
-          question = TOEICQuestionGenerator.generateVocabularyQuestion('medium')
+          question = QuestionGenerator.generateVocabularyQuestion('medium')
       }
-      
-      setCurrentQuestion(question)
-      setSelectedAnswer(null)
-      setShowResult(false)
-      setStartTime(Date.now())
-      setTimeSpent(0)
+
+      if (question) {
+        setCurrentQuestion(question)
+      }
     } catch (error) {
-      console.error('Error generating question:', error)
-      // フォールバック：簡単な単語問題
-      const fallbackQuestion = TOEICQuestionGenerator.generateVocabularyQuestion('easy')
+      console.error('問題生成エラー:', error)
+      const fallbackQuestion = QuestionGenerator.generateVocabularyQuestion('easy')
       setCurrentQuestion(fallbackQuestion)
     } finally {
-      setIsLoading(false)
+      setIsGenerating(false)
     }
   }
 
-  const handleAnswerSelect = (answerIndex: number) => {
-    setSelectedAnswer(answerIndex)
-  }
-
-  const handleSubmit = () => {
-    if (selectedAnswer === null || !currentQuestion) return
-    
+  const handleAnswer = () => {
     setShowResult(true)
-    setQuestionCount(prev => prev + 1)
+    setTotalQuestions(prev => prev + 1)
     
-    if (selectedAnswer === currentQuestion.correctAnswer) {
+    if (currentQuestion && parseInt(selectedAnswer) === currentQuestion.correctAnswer) {
       setScore(prev => prev + 1)
     }
   }
@@ -112,22 +87,22 @@ export default function QuestionTestPage() {
     generateNewQuestion()
   }
 
-  const generateADHDSet = () => {
+  const generateQuestionSet = async () => {
     try {
-      const questionSet = TOEICQuestionGenerator.generateADHDFriendlySet(noutenkyoScore, 300)
-      console.log('Generated ADHD-friendly question set:', questionSet)
-      alert(`Generated ${questionSet.questions.length} questions for ${questionSet.metadata.totalTime} seconds!`)
+      const questionSet = QuestionGenerator.generateADHDFriendlySet(noutenkyoScore, 300)
+      console.log('生成された問題セット:', questionSet)
+      alert(`${questionSet.length}問の問題セットを生成しました。コンソールを確認してください。`)
     } catch (error) {
-      console.error('Error generating ADHD set:', error)
+      console.error('問題セット生成エラー:', error)
+      alert('問題セット生成に失敗しました')
     }
   }
 
-  if (isLoading) {
+  if (isGenerating) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600">問題を生成中...</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <p className="text-lg">問題を生成中...</p>
         </div>
       </div>
     )
@@ -142,15 +117,15 @@ export default function QuestionTestPage() {
     )
   }
 
-  const isCorrect = showResult && selectedAnswer === currentQuestion.correctAnswer
-  const isIncorrect = showResult && selectedAnswer !== currentQuestion.correctAnswer
+  const isCorrect = showResult && parseInt(selectedAnswer) === currentQuestion.correctAnswer
+  const isIncorrect = showResult && parseInt(selectedAnswer) !== currentQuestion.correctAnswer
 
   return (
-    <div className="space-y-6">
+    <div className="container mx-auto px-4 py-8 space-y-6">
       {/* ヘッダー */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-gray-900">問題生成テスト</h1>
-        <p className="text-gray-600">のうてんきょ問題生成エンジンのデモ</p>
+        <p className="text-gray-600">のうてんきょ問題生成エンジンのテスト</p>
       </div>
 
       {/* スコア表示 */}
@@ -164,19 +139,21 @@ export default function QuestionTestPage() {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">{score}</div>
-            <div className="text-sm text-gray-500">正解数</div>
+            <div className="text-sm text-gray-500">正答数</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-purple-600">{questionCount}</div>
+            <div className="text-2xl font-bold text-purple-600">{totalQuestions}</div>
             <div className="text-sm text-gray-500">総問題数</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-orange-600">{timeSpent}s</div>
-            <div className="text-sm text-gray-500">経過時間</div>
+            <div className="text-2xl font-bold text-orange-600">
+              {totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0}%
+            </div>
+            <div className="text-sm text-gray-500">正答率</div>
           </CardContent>
         </Card>
       </div>
@@ -201,144 +178,91 @@ export default function QuestionTestPage() {
                  currentQuestion.difficulty === 'medium' ? '中' : '難'}
               </Badge>
             </div>
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <Clock className="h-4 w-4" />
-              <span>目安: {currentQuestion.estimatedTime}秒</span>
+            <div className="flex items-center space-x-2">
+              <span>目安: {currentQuestion.estimatedTime}分</span>
             </div>
           </div>
-          <CardTitle className="text-xl">{currentQuestion.question}</CardTitle>
-          
-          {/* リスニング問題の場合は音声ボタン */}
-          {currentQuestion.type === 'listening' && (
-            <Button variant="outline" size="sm" className="w-fit">
-              <Volume2 className="h-4 w-4 mr-2" />
-              音声を再生
-            </Button>
-          )}
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* 選択肢 */}
+        <CardContent className="space-y-6">
+          {/* 問題文 */}
           <div className="space-y-2">
-            {currentQuestion.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => !showResult && handleAnswerSelect(index)}
-                disabled={showResult}
-                className={`w-full p-4 text-left rounded-lg border transition-colors ${
-                  selectedAnswer === index
-                    ? showResult
-                      ? index === currentQuestion.correctAnswer
-                        ? 'border-green-500 bg-green-100 text-green-800'
-                        : 'border-red-500 bg-red-100 text-red-800'
-                      : 'border-blue-500 bg-blue-100'
-                    : showResult && index === currentQuestion.correctAnswer
-                      ? 'border-green-500 bg-green-100 text-green-800'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                <div className="flex items-center space-x-3">
-                  <span className="flex-shrink-0 w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center text-sm">
-                    {String.fromCharCode(65 + index)}
-                  </span>
-                  <span>{option}</span>
-                  {showResult && index === currentQuestion.correctAnswer && (
-                    <CheckCircle className="h-5 w-5 text-green-600 ml-auto" />
-                  )}
-                  {showResult && selectedAnswer === index && index !== currentQuestion.correctAnswer && (
-                    <XCircle className="h-5 w-5 text-red-600 ml-auto" />
-                  )}
-                </div>
-              </button>
-            ))}
+            <h2 className="text-xl font-semibold">{currentQuestion.question}</h2>
+            {(currentQuestion as any).context && (
+              <p className="text-gray-600 bg-gray-50 p-3 rounded">{(currentQuestion as any).context}</p>
+            )}
+          </div>
+
+          {/* 選択肢 */}
+          <div className="space-y-3">
+            <RadioGroup 
+              value={selectedAnswer} 
+              onValueChange={setSelectedAnswer}
+              disabled={showResult}
+            >
+              {currentQuestion.options.map((option, index) => {
+                const optionLabel = String.fromCharCode(65 + index) // A, B, C, D
+                const isSelected = selectedAnswer === optionLabel
+                const isCorrectOption = currentQuestion.correctAnswer === index
+                
+                return (
+                  <div key={optionLabel} className={`flex items-center space-x-2 p-3 rounded border ${
+                    showResult && isCorrectOption ? 'bg-green-100 border-green-300' :
+                    showResult && isSelected && !isCorrectOption ? 'bg-red-100 border-red-300' :
+                    'bg-white border-gray-200'
+                  }`}>
+                    <RadioGroupItem value={optionLabel} id={optionLabel} />
+                    <Label htmlFor={optionLabel} className="flex-1 cursor-pointer">
+                      <span className="font-medium">{optionLabel}. </span>
+                      {option}
+                    </Label>
+                  </div>
+                )
+              })}
+            </RadioGroup>
           </div>
 
           {/* 解説 */}
-          {showResult && (
-            <Card className="bg-gray-50">
-              <CardContent className="p-4">
-                <h4 className="font-medium text-gray-900 mb-2">解説</h4>
-                <p className="text-sm text-gray-700">{currentQuestion.explanation}</p>
-                
-                {/* 語彙問題の場合は追加情報 */}
-                {currentQuestion.type === 'vocabulary' && (
-                  <div className="mt-3 space-y-1">
-                    <p className="text-sm"><strong>単語:</strong> {(currentQuestion as any).word}</p>
-                    <p className="text-sm"><strong>発音:</strong> {(currentQuestion as any).pronunciation}</p>
-                    <p className="text-sm"><strong>品詞:</strong> {(currentQuestion as any).partOfSpeech}</p>
-                    <p className="text-sm"><strong>例文:</strong> {(currentQuestion as any).exampleSentence}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          {showResult && currentQuestion.explanation && (
+            <div className="bg-blue-50 p-4 rounded border border-blue-200">
+              <h3 className="font-semibold text-blue-900 mb-2">解説</h3>
+              <p className="text-blue-800">{currentQuestion.explanation}</p>
+            </div>
           )}
 
           {/* ボタン */}
-          <div className="flex items-center space-x-4">
+          <div className="flex justify-between">
             {!showResult ? (
               <Button 
-                onClick={handleSubmit}
-                disabled={selectedAnswer === null}
-                className="flex items-center space-x-2"
+                onClick={handleAnswer} 
+                disabled={!selectedAnswer}
+                className="bg-blue-600 hover:bg-blue-700"
               >
                 <span>解答する</span>
-                <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button 
-                onClick={handleNextQuestion}
-                className="flex items-center space-x-2"
-              >
+              <Button onClick={handleNextQuestion} className="bg-green-600 hover:bg-green-700">
                 <span>次の問題</span>
-                <ArrowRight className="h-4 w-4" />
               </Button>
             )}
             
-            <Button variant="outline" onClick={generateNewQuestion}>
-              <RotateCcw className="h-4 w-4 mr-2" />
+            <Button onClick={generateNewQuestion} variant="outline">
               新しい問題
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* ADHD対応機能のテスト */}
-      <Card className="border-l-4 border-l-purple-500">
-        <CardHeader>
-          <CardTitle className="text-purple-700 flex items-center space-x-2">
-            <Zap className="h-6 w-6" />
-            <span>ADHD対応機能テスト</span>
-          </CardTitle>
-          <CardDescription>
-            時間制限付きの短時間集中型問題セットを生成
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={generateADHDSet} variant="outline">
-            5分間問題セットを生成
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* 問題の詳細情報 */}
+      {/* 問題セット生成テスト */}
       <Card>
         <CardHeader>
-          <CardTitle>問題詳細情報</CardTitle>
+          <div className="flex items-center space-x-2">
+            <span>ADHD対応機能テスト</span>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <strong>問題ID:</strong> {currentQuestion.id}
-            </div>
-            <div>
-              <strong>タグ:</strong> {currentQuestion.tags.join(', ')}
-            </div>
-            <div>
-              <strong>推定解答時間:</strong> {currentQuestion.estimatedTime}秒
-            </div>
-            <div>
-              <strong>TOEIC Part:</strong> Part {currentQuestion.part}
-            </div>
-          </div>
+          <Button onClick={generateQuestionSet} variant="outline">
+            問題セット生成テスト
+          </Button>
         </CardContent>
       </Card>
     </div>

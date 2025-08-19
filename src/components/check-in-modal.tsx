@@ -55,7 +55,7 @@ export function CheckInModal({ onComplete, onClose }: CheckInModalProps) {
       
       // スコア計算してタスク生成
       const score = calculateNoutenkyoScore(userState)
-      const tasks = generateDailyTasks(score)
+      const tasks = await generateDailyTasks(score)
       
       // タスクを保存
       await saveTasks(tasks)

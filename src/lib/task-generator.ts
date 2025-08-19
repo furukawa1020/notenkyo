@@ -6,7 +6,7 @@ export type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced'
 // 学習タスクのテンプレート
 interface TaskTemplate {
   id: string
-  type: 'vocabulary' | 'grammar' | 'listening' | 'reading' | 'working-memory'
+  type: 'vocabulary' | 'grammar' | 'listening' | 'reading' | 'workingmemory'
   difficulty: DifficultyLevel
   estimatedMinutes: number
   cognitiveLoad: number // 1-10の認知負荷
@@ -109,7 +109,7 @@ const TASK_TEMPLATES: TaskTemplate[] = [
   // ワーキングメモリ強化
   {
     id: 'wm-basic',
-    type: 'working-memory',
+    type: 'workingmemory',
     difficulty: 'beginner',
     estimatedMinutes: 8,
     cognitiveLoad: 5,
@@ -121,7 +121,7 @@ const TASK_TEMPLATES: TaskTemplate[] = [
   },
   {
     id: 'wm-advanced',
-    type: 'working-memory',
+    type: 'workingmemory',
     difficulty: 'advanced',
     estimatedMinutes: 12,
     cognitiveLoad: 8,
@@ -196,7 +196,7 @@ function selectBalancedTasks(
   availableTasks: TaskTemplate[],
   maxTasks: number
 ): TaskTemplate[] {
-  const taskTypes = ['vocabulary', 'grammar', 'listening', 'reading', 'working-memory']
+  const taskTypes = ['vocabulary', 'grammar', 'listening', 'reading', 'workingmemory']
   const selectedTasks: TaskTemplate[] = []
 
   // 各タイプから均等に選択
@@ -259,7 +259,7 @@ function generateDepressionOptimizedTasks(
 // TypeをPartに変換するヘルパー関数
 function convertTypeToPartMap(type: string): 'vocabulary' | 'grammar' | 'listening' | 'reading' | 'mocktest' | 'workingmemory' | 'recovery' {
   switch (type) {
-    case 'working-memory':
+    case 'workingmemory':
       return 'workingmemory'
     case 'vocabulary':
     case 'grammar':
