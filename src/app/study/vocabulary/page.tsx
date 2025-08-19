@@ -276,7 +276,7 @@ export default function VocabularyPage() {
                     </p>
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <p className="text-gray-700 italic">
-                        "{currentWord.exampleSentence}"
+                        &ldquo;{currentWord.exampleSentence}&rdquo;
                       </p>
                     </div>
                   </div>

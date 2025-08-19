@@ -287,7 +287,7 @@ const INTERMEDIATE_VOCABULARY_PART1: VocabularyEntry[] = [
 
 // さらに語彙を大幅拡張（本当に12,000語まで）
 const BASIC_VOCABULARY_EXTENDED: VocabularyEntry[] = [
-  ...BASIC_VOCABULARY,
+  ...(BASIC_VOCABULARY as VocabularyEntry[]),
   // ビジネス語彙拡張
   {
     id: 'vocab_basic_0011',
