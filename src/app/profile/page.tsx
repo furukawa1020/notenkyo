@@ -94,6 +94,17 @@ export default function ProfilePage() {
               }
             },
             level: 'intermediate',
+            statistics: {
+              totalSessions: 0,
+              totalStudyTime: 0,
+              averageScore: 0,
+              streak: 0,
+              vocabularyLearned: 0,
+              grammarMastered: 0,
+              readingCompleted: 0,
+              listeningCompleted: 0,
+              lastUpdated: new Date().toISOString()
+            },
             achievements: [],
             totalStudyDays: 0,
             currentStreak: 0,
