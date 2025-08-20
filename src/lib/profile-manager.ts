@@ -1,8 +1,24 @@
 // ユーザープロフィール管理システム
 // 目標設定、現在スコア、学習履歴管理
 
-import { openDB, IDBPDatabase } from 'idb'
+// IDBPDatabase型定義（idbモジュールが見つからない場合のフォールバック）
+interface IDBPDatabase {
+  objectStoreNames: {
+    contains: (name: string) => boolean;
+  };
+  createObjectStore: (name: string, options: any) => any;
+  put: (storeName: string, item: any) => Promise<any>;
+  get: (storeName: string, key: string) => Promise<any>;
+  getAll: (storeName: string) => Promise<any[]>;
+  getAllFromIndex: (storeName: string, indexName: string, key: any) => Promise<any[]>;
+  delete: (storeName: string, key: any) => Promise<any>;
+  transaction: (storeNames: string | string[], mode?: 'readonly' | 'readwrite') => any;
+}
 
+// 通常のimport文の代わりに動的importを使用（ビルド時の問題を回避）
+let openDB: (name: string, version: number, options?: any) => Promise<IDBPDatabase> | null = null;
+
+// 型定義
 export interface UserProfile {
   id: string
   name: string
@@ -13,20 +29,18 @@ export interface UserProfile {
   targetDate?: string
   studyGoals: StudyGoal[]
   preferences: UserPreferences
-  level: 'basic' | 'intermediate' | 'advanced' | 'exp      // エラー時のフォールバック統計
-    return {
-      totalSessions: 0,
-      totalStudyTime: 0,
-      averageScore: 0,
-      streak: 0,
-      vocabularyLearned: 0,
-      grammarMastered: 0,
-      readingCompleted: 0,
-      listeningCompleted: 0,
-      lastUpdated: new Date().toISOString()
-    }
+  level: 'basic' | 'intermediate' | 'advanced' | 'expert'
+  statistics: {
+    totalSessions: number
+    totalStudyTime: number
+    averageScore: number
+    streak: number
+    vocabularyLearned: number
+    grammarMastered: number
+    readingCompleted: number
+    listeningCompleted: number
+    lastUpdated: string
   }
-}
   achievements: Achievement[]
   totalStudyDays: number
   currentStreak: number
@@ -84,13 +98,20 @@ async function getDB(): Promise<IDBPDatabase> {
     throw new Error('IndexedDB is not available in this environment')
   }
 
-  db = await openDB(DB_NAME, DB_VERSION, {
-    upgrade(db) {
-      // ユーザープロフィールストア
-      if (!db.objectStoreNames.contains('profiles')) {
-        const profileStore = db.createObjectStore('profiles', { keyPath: 'id' })
-        profileStore.createIndex('email', 'email', { unique: true })
-      }
+  try {
+    // 実行時にidbモジュールを動的にインポート
+    if (!openDB) {
+      const idb = await import('idb');
+      openDB = idb.openDB;
+    }
+
+    db = await openDB(DB_NAME, DB_VERSION, {
+      upgrade(db) {
+        // ユーザープロフィールストア
+        if (!db.objectStoreNames.contains('profiles')) {
+          const profileStore = db.createObjectStore('profiles', { keyPath: 'id' })
+          profileStore.createIndex('email', 'email', { unique: true })
+        }
 
       // 学習目標ストア
       if (!db.objectStoreNames.contains('goals')) {
@@ -108,6 +129,10 @@ async function getDB(): Promise<IDBPDatabase> {
   })
 
   return db
+} catch (error) {
+  console.error('IndexedDBオープンエラー:', error)
+  throw error
+}
 }
 
 // ユーザープロフィール作成
@@ -136,6 +161,17 @@ export async function createUserProfile(profileData: Partial<UserProfile>): Prom
       }
     },
     level: profileData.level || 'intermediate',
+    statistics: profileData.statistics || {
+      totalSessions: 0,
+      totalStudyTime: 0,
+      averageScore: 0,
+      streak: 0,
+      vocabularyLearned: 0,
+      grammarMastered: 0,
+      readingCompleted: 0,
+      listeningCompleted: 0,
+      lastUpdated: now
+    },
     achievements: profileData.achievements || [],
     totalStudyDays: profileData.totalStudyDays || 0,
     currentStreak: profileData.currentStreak || 0,
@@ -249,9 +285,6 @@ export async function updateUserProfile(profileData: Partial<UserProfile> & { id
       throw error // 元のエラーを再スロー
     }
   }
-  
-  await db.put('profiles', updated)
-  return updated
 }
 
 // 学習目標追加
@@ -304,6 +337,11 @@ export async function getStudyGoals(profileId: string): Promise<StudyGoal[]> {
 export async function unlockAchievement(profileId: string, achievementId: string): Promise<void> {
   const profile = await getUserProfile(profileId)
   if (!profile) return
+
+  // Ensure the achievements array exists
+  if (!profile.achievements) {
+    profile.achievements = [];
+  }
 
   const achievement = profile.achievements.find(a => a.id === achievementId)
   if (achievement && !achievement.unlockedAt) {
