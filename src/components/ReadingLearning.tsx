@@ -217,10 +217,10 @@ export default function ReadingLearning({
       correctAnswers: score,
       accuracy: totalQuestions > 0 ? (score / totalQuestions) * 100 : 0,
       pointsEarned,
-      passagesCompleted: passageIndex + 1,
-      averageWordsPerMinute: sessionStartTime ? Math.round(wordsRead / ((new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60)) : 0,
+      readingSpeed: sessionStartTime ? Math.round(wordsRead / ((new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60)) : 0,
       timeSpent,
-      level: determineLevel(userLevel)
+      level: determineLevel(userLevel),
+      passagesRead: passageIndex + 1
     }
 
     onComplete(results)
