@@ -1,4 +1,5 @@
-﻿'use client'
+'use client'
+
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -12,12 +13,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { 
-  BookOpen, 
-  Search, 
-  Tag, 
-  X, 
-  Volume2, 
+import {
+  BookOpen,
+  Search,
+  Tag,
+  X,
+  Volume2,
   Star,
   StarHalf,
   Star as StarOff,
@@ -28,15 +29,15 @@ import {
   ChevronRight,
 } from 'lucide-react'
 
-import { 
-  BASIC_VOCABULARY, 
-  INTERMEDIATE_VOCABULARY, 
-  ADVANCED_VOCABULARY, 
+import {
+  BASIC_VOCABULARY,
+  INTERMEDIATE_VOCABULARY,
+  ADVANCED_VOCABULARY,
   EXPERT_VOCABULARY,
-  VocabularyEntry 
+  VocabularyEntry
 } from '@/lib/enhanced-vocabulary-database'
 
-// 螻･豁ｴ邂｡逅・・縺溘ａ縺ｮ蝙・
+// 閲覧履歴のための垁E
 type VocabularyHistory = {
   id: string
   timestamp: number
@@ -44,7 +45,7 @@ type VocabularyHistory = {
 }
 
 const VocabularyFlashcard: React.FC = () => {
-  // 迥ｶ諷狗ｮ｡逅・
+  // 状態管琁E
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('all')
   const [sortOrder, setSortOrder] = useState<'az' | 'za'>('az')
@@ -56,10 +57,10 @@ const VocabularyFlashcard: React.FC = () => {
   const [currentFlashcardIndex, setCurrentFlashcardIndex] = useState(0)
   const [showMeaning, setShowMeaning] = useState(false)
   const [filteredWords, setFilteredWords] = useState<VocabularyEntry[]>([])
-  
+
   const router = useRouter()
 
-  // 蜈ｨ蜊倩ｪ槭・繝・・繧ｿ繧堤ｵ仙粋
+  // 全単語データを結合
   const allVocabulary = [
     ...BASIC_VOCABULARY,
     ...INTERMEDIATE_VOCABULARY,
@@ -67,62 +68,62 @@ const VocabularyFlashcard: React.FC = () => {
     ...EXPERT_VOCABULARY
   ]
 
-  // 繝ｭ繝ｼ繧ｫ繝ｫ繧ｹ繝医Ξ繝ｼ繧ｸ縺九ｉ螻･豁ｴ縺ｨ縺頑ｰ励↓蜈･繧翫ｒ蜿門ｾ・
+  // ローカルストレージからお気に入りと閲覧履歴を取征E
   useEffect(() => {
     try {
       const storedFavorites = localStorage.getItem('vocabulary_favorites')
       if (storedFavorites) {
         setFavorites(JSON.parse(storedFavorites))
       }
-      
+
       const storedHistory = localStorage.getItem('vocabulary_history')
       if (storedHistory) {
         setViewHistory(JSON.parse(storedHistory))
       }
     } catch (error) {
-      console.error('繝ｭ繝ｼ繧ｫ繝ｫ繧ｹ繝医Ξ繝ｼ繧ｸ縺九ｉ縺ｮ隱ｭ縺ｿ霎ｼ縺ｿ繧ｨ繝ｩ繝ｼ:', error)
+      console.error('ローカルストレージからの読み込みエラー:', error)
     }
   }, [])
 
-  // 縺頑ｰ励↓蜈･繧翫・菫晏ｭ・
+  // お気に入り�E保孁E
   useEffect(() => {
     try {
       localStorage.setItem('vocabulary_favorites', JSON.stringify(favorites))
     } catch (error) {
-      console.error('縺頑ｰ励↓蜈･繧翫・菫晏ｭ倥お繝ｩ繝ｼ:', error)
+      console.error('お気に入り�E保存エラー:', error)
     }
   }, [favorites])
 
-  // 螻･豁ｴ縺ｮ菫晏ｭ・
+  // 履歴の保孁E
   useEffect(() => {
     try {
       localStorage.setItem('vocabulary_history', JSON.stringify(viewHistory))
     } catch (error) {
-      console.error('螻･豁ｴ縺ｮ菫晏ｭ倥お繝ｩ繝ｼ:', error)
+      console.error('履歴の保存エラー:', error)
     }
   }, [viewHistory])
 
-  // 蜊倩ｪ槭・繝輔ぅ繝ｫ繧ｿ繝ｪ繝ｳ繧ｰ蜃ｦ逅・
+  // 単語�Eフィルタリング処琁E
   useEffect(() => {
     let result = [...allVocabulary]
-    
-    // 讀懃ｴ｢繝輔ぅ繝ｫ繧ｿ繝ｪ繝ｳ繧ｰ
+
+    // 検索フィルタリング
     if (searchTerm) {
       const lowerSearchTerm = searchTerm.toLowerCase()
-      result = result.filter(word => 
-        word.word.toLowerCase().includes(lowerSearchTerm) || 
+      result = result.filter(word =>
+        word.word.toLowerCase().includes(lowerSearchTerm) ||
         word.meanings.some(meaning => meaning.includes(searchTerm))
       )
     }
-    
-    // 繧ｿ繝悶↓繧医ｋ繝輔ぅ繝ｫ繧ｿ繝ｪ繝ｳ繧ｰ
+
+    // タブによるフィルタリング
     if (activeTab !== 'all') {
       if (activeTab === 'favorites') {
         result = result.filter(word => favorites.includes(word.id))
       } else if (activeTab === 'history') {
         const historyIds = viewHistory.map(h => h.id)
         result = result.filter(word => historyIds.includes(word.id))
-        // 螻･豁ｴ鬆・↓繧ｽ繝ｼ繝・
+        // 履歴頁E��ソーチE
         result.sort((a, b) => {
           const aTimestamp = viewHistory.find(h => h.id === a.id)?.timestamp || 0
           const bTimestamp = viewHistory.find(h => h.id === b.id)?.timestamp || 0
@@ -132,68 +133,68 @@ const VocabularyFlashcard: React.FC = () => {
         result = result.filter(word => word.level === activeTab)
       }
     }
-    
-    // 繧ｽ繝ｼ繝亥・逅・
+
+    // ソート�E琁E
     if (activeTab !== 'history') {
       result.sort((a, b) => {
-        return sortOrder === 'az' 
-          ? a.word.localeCompare(b.word) 
+        return sortOrder === 'az'
+          ? a.word.localeCompare(b.word)
           : b.word.localeCompare(a.word)
       })
     }
-    
+
     setFilteredWords(result)
     setCurrentPage(1)
   }, [searchTerm, activeTab, sortOrder, favorites, viewHistory, allVocabulary])
 
-  // 蜊倩ｪ槭ｒ髢ｲ隕ｧ縺励◆譎ゅ・蜃ｦ逅・
+  // 単語を閲覧した時�E処琁E
   const viewWord = (wordId: string) => {
     const now = Date.now()
-    
-    // 譌｢蟄倥・螻･豁ｴ縺九ｉ隧ｲ蠖灘腰隱槭ｒ蜑企勁
+
+    // 既存�E履歴から該当頁E��を削除
     const newHistory = viewHistory.filter(item => item.id !== wordId)
-    
-    // 螻･豁ｴ縺ｮ蜈磯ｭ縺ｫ霑ｽ蜉
+
+    // 履歴の先頭に追加
     const isFavorite = favorites.includes(wordId)
     newHistory.unshift({ id: wordId, timestamp: now, isFavorite })
-    
-    // 螻･豁ｴ縺ｯ譛螟ｧ100莉ｶ縺ｾ縺ｧ
+
+    // 履歴は最大100件まで
     const limitedHistory = newHistory.slice(0, 100)
     setViewHistory(limitedHistory)
   }
 
-  // 縺頑ｰ励↓蜈･繧顔匳骭ｲ繝ｻ隗｣髯､
+  // お気に入り状態�Eり替ぁE
   const toggleFavorite = (wordId: string) => {
     if (favorites.includes(wordId)) {
       setFavorites(favorites.filter(id => id !== wordId))
     } else {
       setFavorites([...favorites, wordId])
     }
-    
-    // 螻･豁ｴ蜀・・縺頑ｰ励↓蜈･繧顔憾諷九ｂ譖ｴ譁ｰ
-    const updatedHistory = viewHistory.map(item => 
-      item.id === wordId 
+
+    // 履歴冁E�Eお気に入り状態も更新
+    const updatedHistory = viewHistory.map(item =>
+      item.id === wordId
         ? { ...item, isFavorite: !favorites.includes(wordId) }
         : item
     )
     setViewHistory(updatedHistory)
   }
 
-  // 繝輔Λ繝・す繝･繧ｫ繝ｼ繝峨Δ繝ｼ繝峨・髢句ｧ・
+  // フラチE��ュカードモード�E開姁E
   const startFlashcardMode = () => {
     if (filteredWords.length === 0) return
-    
+
     setIsFlashcardMode(true)
     setCurrentFlashcardIndex(0)
     setShowMeaning(false)
-    
-    // 譛蛻昴・蜊倩ｪ槭ｒ螻･豁ｴ縺ｫ霑ｽ蜉
+
+    // 最初�E単語を履歴に追加
     if (filteredWords.length > 0) {
       viewWord(filteredWords[0].id)
     }
   }
 
-  // 繝輔Λ繝・す繝･繧ｫ繝ｼ繝峨・谺｡縺ｸ
+  // フラチE��ュカード�E次へ
   const nextFlashcard = () => {
     if (currentFlashcardIndex < filteredWords.length - 1) {
       const nextIndex = currentFlashcardIndex + 1
@@ -203,7 +204,7 @@ const VocabularyFlashcard: React.FC = () => {
     }
   }
 
-  // 繝輔Λ繝・す繝･繧ｫ繝ｼ繝峨・蜑阪∈
+  // フラチE��ュカード�E前へ
   const prevFlashcard = () => {
     if (currentFlashcardIndex > 0) {
       const prevIndex = currentFlashcardIndex - 1
@@ -213,7 +214,7 @@ const VocabularyFlashcard: React.FC = () => {
     }
   }
 
-  // 逋ｺ髻ｳ讖溯・
+  // 発音機�E
   const speakWord = (word: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(word)
@@ -223,31 +224,31 @@ const VocabularyFlashcard: React.FC = () => {
     }
   }
 
-  // 繝壹・繧ｸ繝ｳ繧ｰ蜃ｦ逅・
+  // ペ�Eジング処琁E
   const totalPages = Math.ceil(filteredWords.length / itemsPerPage)
   const currentItems = filteredWords.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
 
-  // 繝輔Λ繝・す繝･繧ｫ繝ｼ繝峨Δ繝ｼ繝峨・陦ｨ遉ｺ
+  // フラチE��ュカードモード�E表示
   if (isFlashcardMode && filteredWords.length > 0) {
     const currentWord = filteredWords[currentFlashcardIndex]
-    
+
     return (
       <Card className="w-full max-w-2xl mx-auto">
         <CardHeader className="text-center">
           <div className="flex justify-between items-center">
             <Button variant="ghost" size="sm" onClick={() => setIsFlashcardMode(false)}>
               <ChevronLeft className="h-4 w-4 mr-1" />
-              謌ｻ繧・
+              戻めE
             </Button>
             <div className="flex items-center gap-2">
               <Badge variant="outline">
                 {currentFlashcardIndex + 1} / {filteredWords.length}
               </Badge>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={() => toggleFavorite(currentWord.id)}
               >
@@ -258,10 +259,9 @@ const VocabularyFlashcard: React.FC = () => {
                 )}
               </Button>
             </div>
-          </div>
-          <CardTitle className="mt-4">繝輔Λ繝・す繝･繧ｫ繝ｼ繝・/CardTitle>
+          <CardTitle className="mt-4">�t���b�V���J�[�h</CardTitle>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           <div className="min-h-[300px] flex flex-col items-center justify-center space-y-4 p-6 border rounded-lg">
             <div className="text-center space-y-3">
@@ -280,14 +280,14 @@ const VocabularyFlashcard: React.FC = () => {
 
             {showMeaning ? (
               <div className="mt-6 text-center">
-                <h3 className="font-semibold mb-2">諢丞袖:</h3>
+                <h3 className="font-semibold mb-2">意味:</h3>
                 <ul className="space-y-1">
                   {currentWord.meanings.map((meaning, index) => (
                     <li key={index}>{meaning}</li>
                   ))}
                 </ul>
-                
-                <h3 className="font-semibold mb-2 mt-4">萓区枚:</h3>
+
+                <h3 className="font-semibold mb-2 mt-4">例文:</h3>
                 {currentWord.exampleSentences.map((sentence, index) => (
                   <div key={index} className="text-sm space-y-1 mt-2">
                     <p>{sentence.english}</p>
@@ -296,31 +296,31 @@ const VocabularyFlashcard: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setShowMeaning(true)}
                 className="mt-6"
               >
-                諢丞袖繧定｡ｨ遉ｺ
+                意味を表示
               </Button>
             )}
           </div>
-          
+
           <div className="flex justify-between">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={prevFlashcard}
               disabled={currentFlashcardIndex === 0}
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
-              蜑阪∈
+              前へ
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={nextFlashcard}
               disabled={currentFlashcardIndex === filteredWords.length - 1}
             >
-              谺｡縺ｸ
+              次へ
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
@@ -329,32 +329,32 @@ const VocabularyFlashcard: React.FC = () => {
     )
   }
 
-  // 騾壼ｸｸ繝｢繝ｼ繝峨・陦ｨ遉ｺ
+  // 通常モード�E表示
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle className="flex items-center gap-2">
             <BookOpen className="h-6 w-6" />
-            蜊倩ｪ槫ｸｳ
+            単語帳
           </CardTitle>
           <Button variant="outline" onClick={() => router.push('/study/vocabulary')}>
-            蟄ｦ鄙偵Δ繝ｼ繝峨∈
+            �w�K���[�h�ց�
           </Button>
         </div>
         <CardDescription>
-          TOEIC蟇ｾ遲也畑縺ｮ12,000隱槭°繧牙腰隱槭ｒ讀懃ｴ｢繝ｻ髢ｲ隕ｧ縺ｧ縺阪∪縺・
+          TOEIC対策用の12,000語から単語を検索・閲覧できまぁE
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-6">
-        {/* 讀懃ｴ｢讖溯・ */}
+        {/* 検索機�E */}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="蜊倩ｪ槭ｄ諢丞袖縺ｧ讀懃ｴ｢..."
+              placeholder="単語や意味で検索..."
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -374,7 +374,7 @@ const VocabularyFlashcard: React.FC = () => {
             variant="outline"
             size="icon"
             onClick={() => setSortOrder(sortOrder === 'az' ? 'za' : 'az')}
-            title={sortOrder === 'az' ? 'A竊短鬆・ : 'Z竊但鬆・}
+            title={sortOrder === 'az' ? 'A→Z頁E : 'Z→A頁E}
           >
             <ArrowUpDown className="h-4 w-4" />
           </Button>
@@ -383,33 +383,33 @@ const VocabularyFlashcard: React.FC = () => {
             size="icon"
             onClick={startFlashcardMode}
             disabled={filteredWords.length === 0}
-            title="繝輔Λ繝・す繝･繧ｫ繝ｼ繝峨Δ繝ｼ繝・
+            title="フラチE��ュカードモーチE
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
-        
-        {/* 繧ｿ繝・*/}
+
+        {/* タチE*/}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-6">
-            <TabsTrigger value="all">蜈ｨ縺ｦ</TabsTrigger>
-            <TabsTrigger value="favorites">縺頑ｰ励↓蜈･繧・/TabsTrigger>
-            <TabsTrigger value="history">螻･豁ｴ</TabsTrigger>
+            <TabsTrigger value="all">全て</TabsTrigger>
+            <TabsTrigger value="favorites">お気に入めE/TabsTrigger>
+            <TabsTrigger value="history">履歴</TabsTrigger>
             <TabsTrigger value="basic">Basic</TabsTrigger>
             <TabsTrigger value="intermediate">Inter</TabsTrigger>
             <TabsTrigger value="advanced">Adv</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value={activeTab} className="mt-4">
             {currentItems.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                蜊倩ｪ槭′隕九▽縺九ｊ縺ｾ縺帙ｓ
+                単語が見つかりません
               </div>
             ) : (
               <div className="space-y-4">
                 {currentItems.map(word => (
                   <Card key={word.id} className="overflow-hidden">
-                    <div 
+                    <div
                       className="p-4 cursor-pointer"
                       onClick={() => {
                         viewWord(word.id)
@@ -432,8 +432,8 @@ const VocabularyFlashcard: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <Badge variant="outline">{word.partOfSpeech}</Badge>
                           <Badge variant="secondary">{word.level.toUpperCase()}</Badge>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
@@ -442,8 +442,8 @@ const VocabularyFlashcard: React.FC = () => {
                           >
                             <Volume2 className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
@@ -459,17 +459,17 @@ const VocabularyFlashcard: React.FC = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div id={`word-details-${word.id}`} className="px-4 pb-4 pt-0 hidden">
                       <div className="border-t pt-3 mt-2">
-                        <h4 className="font-semibold mb-2">諢丞袖:</h4>
+                        <h4 className="font-semibold mb-2">意味:</h4>
                         <ul className="space-y-1">
                           {word.meanings.map((meaning, index) => (
                             <li key={index}>{meaning}</li>
                           ))}
                         </ul>
-                        
-                        <h4 className="font-semibold mb-2 mt-4">萓区枚:</h4>
+
+                        <h4 className="font-semibold mb-2 mt-4">例文:</h4>
                         {word.exampleSentences.map((sentence, index) => (
                           <div key={index} className="text-sm space-y-1 mt-2">
                             <p>{sentence.english}</p>
@@ -482,8 +482,8 @@ const VocabularyFlashcard: React.FC = () => {
                 ))}
               </div>
             )}
-            
-            {/* 繝壹・繧ｸ繝阪・繧ｷ繝ｧ繝ｳ */}
+
+            {/* ペ�Eジネ�Eション */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-6">
                 <Button
