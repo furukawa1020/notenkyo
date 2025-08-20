@@ -37,7 +37,7 @@ import {
   VocabularyEntry
 } from '@/lib/enhanced-vocabulary-database'
 
-// 閲覧履歴のための垁E
+// 閲覧履歴のための型
 type VocabularyHistory = {
   id: string
   timestamp: number
@@ -45,7 +45,7 @@ type VocabularyHistory = {
 }
 
 const VocabularyFlashcard: React.FC = () => {
-  // 状態管琁E
+  // 状態管理
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('all')
   const [sortOrder, setSortOrder] = useState<'az' | 'za'>('az')
@@ -68,7 +68,7 @@ const VocabularyFlashcard: React.FC = () => {
     ...EXPERT_VOCABULARY
   ]
 
-  // ローカルストレージからお気に入りと閲覧履歴を取征E
+  // ローカルストレージからお気に入りと閲覧履歴を取得
   useEffect(() => {
     try {
       const storedFavorites = localStorage.getItem('vocabulary_favorites')
@@ -85,16 +85,16 @@ const VocabularyFlashcard: React.FC = () => {
     }
   }, [])
 
-  // お気に入り�E保孁E
+  // お気に入りの保存
   useEffect(() => {
     try {
       localStorage.setItem('vocabulary_favorites', JSON.stringify(favorites))
     } catch (error) {
-      console.error('お気に入り�E保存エラー:', error)
+      console.error('お気に入りの保存エラー:', error)
     }
   }, [favorites])
 
-  // 履歴の保孁E
+  // 履歴の保存
   useEffect(() => {
     try {
       localStorage.setItem('vocabulary_history', JSON.stringify(viewHistory))
@@ -103,7 +103,7 @@ const VocabularyFlashcard: React.FC = () => {
     }
   }, [viewHistory])
 
-  // 単語�Eフィルタリング処琁E
+  // 単語のフィルタリング処理
   useEffect(() => {
     let result = [...allVocabulary]
 
@@ -123,7 +123,7 @@ const VocabularyFlashcard: React.FC = () => {
       } else if (activeTab === 'history') {
         const historyIds = viewHistory.map(h => h.id)
         result = result.filter(word => historyIds.includes(word.id))
-        // 履歴頁E��ソーチE
+        // 履歴順でソート
         result.sort((a, b) => {
           const aTimestamp = viewHistory.find(h => h.id === a.id)?.timestamp || 0
           const bTimestamp = viewHistory.find(h => h.id === b.id)?.timestamp || 0
@@ -134,7 +134,7 @@ const VocabularyFlashcard: React.FC = () => {
       }
     }
 
-    // ソート�E琁E
+    // ソート処理
     if (activeTab !== 'history') {
       result.sort((a, b) => {
         return sortOrder === 'az'
@@ -147,11 +147,11 @@ const VocabularyFlashcard: React.FC = () => {
     setCurrentPage(1)
   }, [searchTerm, activeTab, sortOrder, favorites, viewHistory, allVocabulary])
 
-  // 単語を閲覧した時�E処琁E
+  // 単語を閲覧した時の処理
   const viewWord = (wordId: string) => {
     const now = Date.now()
 
-    // 既存�E履歴から該当頁E��を削除
+    // 既存の履歴から該当項目を削除
     const newHistory = viewHistory.filter(item => item.id !== wordId)
 
     // 履歴の先頭に追加
@@ -163,7 +163,7 @@ const VocabularyFlashcard: React.FC = () => {
     setViewHistory(limitedHistory)
   }
 
-  // お気に入り状態�Eり替ぁE
+  // お気に入り状態の切り替え
   const toggleFavorite = (wordId: string) => {
     if (favorites.includes(wordId)) {
       setFavorites(favorites.filter(id => id !== wordId))
@@ -171,7 +171,7 @@ const VocabularyFlashcard: React.FC = () => {
       setFavorites([...favorites, wordId])
     }
 
-    // 履歴冁E�Eお気に入り状態も更新
+    // 履歴内のお気に入り状態も更新
     const updatedHistory = viewHistory.map(item =>
       item.id === wordId
         ? { ...item, isFavorite: !favorites.includes(wordId) }
@@ -180,7 +180,7 @@ const VocabularyFlashcard: React.FC = () => {
     setViewHistory(updatedHistory)
   }
 
-  // フラチE��ュカードモード�E開姁E
+  // フラッシュカードモードの開始
   const startFlashcardMode = () => {
     if (filteredWords.length === 0) return
 
@@ -188,13 +188,13 @@ const VocabularyFlashcard: React.FC = () => {
     setCurrentFlashcardIndex(0)
     setShowMeaning(false)
 
-    // 最初�E単語を履歴に追加
+    // 最初の単語を履歴に追加
     if (filteredWords.length > 0) {
       viewWord(filteredWords[0].id)
     }
   }
 
-  // フラチE��ュカード�E次へ
+  // フラッシュカードの次へ
   const nextFlashcard = () => {
     if (currentFlashcardIndex < filteredWords.length - 1) {
       const nextIndex = currentFlashcardIndex + 1
@@ -204,7 +204,7 @@ const VocabularyFlashcard: React.FC = () => {
     }
   }
 
-  // フラチE��ュカード�E前へ
+  // フラッシュカードの前へ
   const prevFlashcard = () => {
     if (currentFlashcardIndex > 0) {
       const prevIndex = currentFlashcardIndex - 1
@@ -214,7 +214,7 @@ const VocabularyFlashcard: React.FC = () => {
     }
   }
 
-  // 発音機�E
+  // 発音機能
   const speakWord = (word: string) => {
     if ('speechSynthesis' in window) {
       const utterance = new SpeechSynthesisUtterance(word)
@@ -224,14 +224,14 @@ const VocabularyFlashcard: React.FC = () => {
     }
   }
 
-  // ペ�Eジング処琁E
+  // ページング処理
   const totalPages = Math.ceil(filteredWords.length / itemsPerPage)
   const currentItems = filteredWords.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
 
-  // フラチE��ュカードモード�E表示
+  // フラッシュカードモードの表示
   if (isFlashcardMode && filteredWords.length > 0) {
     const currentWord = filteredWords[currentFlashcardIndex]
 
@@ -241,7 +241,7 @@ const VocabularyFlashcard: React.FC = () => {
           <div className="flex justify-between items-center">
             <Button variant="ghost" size="sm" onClick={() => setIsFlashcardMode(false)}>
               <ChevronLeft className="h-4 w-4 mr-1" />
-              戻めE
+              戻る
             </Button>
             <div className="flex items-center gap-2">
               <Badge variant="outline">
@@ -259,7 +259,8 @@ const VocabularyFlashcard: React.FC = () => {
                 )}
               </Button>
             </div>
-          <CardTitle className="mt-4">�t���b�V���J�[�h</CardTitle>
+          </div>
+          <CardTitle className="mt-4">フラッシュカード</CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-6">
@@ -329,7 +330,7 @@ const VocabularyFlashcard: React.FC = () => {
     )
   }
 
-  // 通常モード�E表示
+  // 通常モードの表示
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader>
@@ -339,16 +340,16 @@ const VocabularyFlashcard: React.FC = () => {
             単語帳
           </CardTitle>
           <Button variant="outline" onClick={() => router.push('/study/vocabulary')}>
-            �w�K���[�h�ց�
+            学習モードへ
           </Button>
         </div>
         <CardDescription>
-          TOEIC対策用の12,000語から単語を検索・閲覧できまぁE
+          TOEIC対策用の12,000語から単語を検索・閲覧できます
         </CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* 検索機�E */}
+        {/* 検索機能 */}
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -374,7 +375,7 @@ const VocabularyFlashcard: React.FC = () => {
             variant="outline"
             size="icon"
             onClick={() => setSortOrder(sortOrder === 'az' ? 'za' : 'az')}
-            title={sortOrder === 'az' ? 'A→Z頁E : 'Z→A頁E}
+            title={sortOrder === 'az' ? 'A→Z順' : 'Z→A順'}
           >
             <ArrowUpDown className="h-4 w-4" />
           </Button>
@@ -383,17 +384,17 @@ const VocabularyFlashcard: React.FC = () => {
             size="icon"
             onClick={startFlashcardMode}
             disabled={filteredWords.length === 0}
-            title="フラチE��ュカードモーチE
+            title="フラッシュカードモード"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
 
-        {/* タチE*/}
+        {/* タブ */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="w-full grid grid-cols-6">
             <TabsTrigger value="all">全て</TabsTrigger>
-            <TabsTrigger value="favorites">お気に入めE/TabsTrigger>
+            <TabsTrigger value="favorites">お気に入り</TabsTrigger>
             <TabsTrigger value="history">履歴</TabsTrigger>
             <TabsTrigger value="basic">Basic</TabsTrigger>
             <TabsTrigger value="intermediate">Inter</TabsTrigger>
@@ -483,7 +484,7 @@ const VocabularyFlashcard: React.FC = () => {
               </div>
             )}
 
-            {/* ペ�Eジネ�Eション */}
+            {/* ページネーション */}
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-6">
                 <Button
