@@ -15,6 +15,8 @@ import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { getAllVocabulary, getVocabularyByLevel, VocabularyEntry } from '@/lib/vocabulary-database'
 import { saveTaskProgress } from '@/lib/storage'
+import { getUserProfile } from '@/lib/profile-manager'
+import VocabularyLearning from '@/components/VocabularyLearning'
 
 interface VocabularyItem {
   id: string
@@ -87,6 +89,17 @@ export default function VocabularyPage() {
   const [filterMode, setFilterMode] = useState<'all' | 'favorites' | 'known' | 'unknown'>('all')
   const [showSortOptions, setShowSortOptions] = useState(false)
   const [sortOrder, setSortOrder] = useState<'alphabetical' | 'level' | 'frequency'>('level')
+  // ユーザーTOEICスコア
+  const [userToeicScore, setUserToeicScore] = useState(600)
+  // VocabularyLearningコンポーネントの結果保存用
+  const [quizResults, setQuizResults] = useState<{
+    totalWords: number;
+    correctAnswers: number;
+    accuracy: number;
+    wordsLearned: string[];
+    timeSpent: number;
+    level: string;
+  } | null>(null)
 
   const currentWord = vocabulary[currentIndex]
 
@@ -164,6 +177,21 @@ export default function VocabularyPage() {
     const loadVocabulary = async () => {
       setIsLoading(true)
       try {
+        // ユーザープロファイルの取得
+        try {
+          const profile = await getUserProfile()
+          if (profile && profile.currentToeicScore) {
+            setUserToeicScore(profile.currentToeicScore)
+          } else {
+            // プロファイルが見つからない場合はデフォルト値を使用
+            setUserToeicScore(600)
+          }
+        } catch (error) {
+          console.error('Failed to load user profile:', error)
+          // エラー時もデフォルト値を使用
+          setUserToeicScore(600)
+        }
+        
         const allVocab = getAllVocabulary()
         const convertedVocab = allVocab
           .map(convertVocabularyEntry)
@@ -561,38 +589,58 @@ export default function VocabularyPage() {
 
           {/* 4択クイズモード */}
           <TabsContent value="quiz" className="space-y-6">
-            {/* ここに4択クイズのUIを実装 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>4択クイズモード</CardTitle>
-                <CardDescription>
-                  単語の意味として正しいものを選択してください
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center mb-6">
-                  <h2 className="text-3xl font-bold">{currentWord.word}</h2>
-                  <p className="text-gray-600">{currentWord.pronunciation}</p>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => playPronunciation(currentWord.word)}
-                    className="mt-2"
-                  >
-                    <Volume2 className="h-4 w-4 mr-2" />
-                    発音を聞く
+            {quizResults ? (
+              // 結果表示
+              <Card>
+                <CardHeader>
+                  <CardTitle>学習結果</CardTitle>
+                  <CardDescription>
+                    お疲れさまでした！結果は以下の通りです
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-center">
+                    <div className="space-y-1">
+                      <p className="text-2xl font-bold">{quizResults.totalWords}</p>
+                      <p className="text-sm text-muted-foreground">学習単語数</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-2xl font-bold">{quizResults.correctAnswers}</p>
+                      <p className="text-sm text-muted-foreground">正解数</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-2xl font-bold">{Math.round(quizResults.accuracy)}%</p>
+                      <p className="text-sm text-muted-foreground">正答率</p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-2xl font-bold">{Math.round(quizResults.timeSpent)}分</p>
+                      <p className="text-sm text-muted-foreground">学習時間</p>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Button onClick={() => setQuizResults(null)} className="w-full">
+                    再チャレンジ
                   </Button>
-                </div>
-
-                <div className="space-y-3">
-                  {/* 実際の4択問題はVocabularyLearningコンポーネントで実装済み */}
-                  <p className="text-center text-blue-600 mb-4">
-                    VocabularyLearningコンポーネントで4択問題を実装しました。
-                    こちらでは単語帳モードを重点的に実装しています。
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+                </CardFooter>
+              </Card>
+            ) : (
+              // VocabularyLearningコンポーネントで4択問題を実装
+              <VocabularyLearning
+                userLevel={userToeicScore} // ユーザーの実際のTOEICスコアを使用
+                sessionDuration={10} // 10分のセッション
+                onComplete={(results) => {
+                  setQuizResults(results);
+                  // 学習進捗も保存
+                  saveTaskProgress('vocabulary', {
+                    score: results.correctAnswers,
+                    totalQuestions: results.totalWords,
+                    timeSpent: results.timeSpent,
+                    completed: true
+                  });
+                }}
+              />
+            )}
           </TabsContent>
 
           {/* 単語帳モード */}
