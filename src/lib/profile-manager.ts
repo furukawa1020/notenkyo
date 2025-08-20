@@ -13,7 +13,20 @@ export interface UserProfile {
   targetDate?: string
   studyGoals: StudyGoal[]
   preferences: UserPreferences
-  level: 'basic' | 'intermediate' | 'advanced' | 'expert'
+  level: 'basic' | 'intermediate' | 'advanced' | 'exp      // エラー時のフォールバック統計
+    return {
+      totalSessions: 0,
+      totalStudyTime: 0,
+      averageScore: 0,
+      streak: 0,
+      vocabularyLearned: 0,
+      grammarMastered: 0,
+      readingCompleted: 0,
+      listeningCompleted: 0,
+      lastUpdated: new Date().toISOString()
+    }
+  }
+}
   achievements: Achievement[]
   totalStudyDays: number
   currentStreak: number
@@ -155,7 +168,6 @@ export async function createUserProfile(profileData: Partial<UserProfile>): Prom
   
   return profile
 }
-}
 
 // ユーザープロフィール取得
 export async function getUserProfile(id?: string): Promise<UserProfile | null> {
@@ -237,8 +249,7 @@ export async function updateUserProfile(profileData: Partial<UserProfile> & { id
       throw error // 元のエラーを再スロー
     }
   }
-}
-
+  
   await db.put('profiles', updated)
   return updated
 }
@@ -397,10 +408,5 @@ export async function calculateProfileStats(profileId: string) {
       listeningCompleted: 0,
       lastUpdated: new Date().toISOString()
     }
-  }
-}
-    currentStreak: streak,
-    totalStudyDays: uniqueDates.length,
-    averageSessionTime: totalSessions > 0 ? Math.round(totalStudyTime / totalSessions) : 0
   }
 }
