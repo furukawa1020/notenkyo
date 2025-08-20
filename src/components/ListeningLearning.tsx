@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -263,6 +263,30 @@ export default function ListeningLearning({
     }
   }
 
+  // セッション終了
+  const endSession = useCallback(() => {
+    pauseAudio()
+    setSessionActive(false)
+    const timeSpent = sessionStartTime 
+      ? (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60 
+      : sessionDuration
+
+    const averagePlayCount = sessionAudios.length > 0 ? totalPlayCounts / sessionAudios.length : 0
+
+    const results: ListeningSessionResults = {
+      totalQuestions: totalQuestions,
+      correctAnswers: score,
+      accuracy: totalQuestions > 0 ? (score / totalQuestions) * 100 : 0,
+      pointsEarned,
+      timeSpent,
+      level: determineLevel(userLevel),
+      audiosCompleted: audioIndex + 1,
+      averagePlayCount
+    }
+
+    onComplete(results)
+  }, [sessionStartTime, sessionDuration, sessionAudios.length, totalPlayCounts, totalQuestions, score, pointsEarned, userLevel, audioIndex, onComplete])
+
   // タイマー
   useEffect(() => {
     if (sessionActive && timeRemaining > 0) {
@@ -399,30 +423,6 @@ export default function ListeningLearning({
         endSession()
       }
     }
-  }
-
-  // セッション終了
-  const endSession = () => {
-    pauseAudio()
-    setSessionActive(false)
-    const timeSpent = sessionStartTime 
-      ? (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60 
-      : sessionDuration
-
-    const averagePlayCount = sessionAudios.length > 0 ? totalPlayCounts / sessionAudios.length : 0
-
-    const results: ListeningSessionResults = {
-      totalQuestions: totalQuestions,
-      correctAnswers: score,
-      accuracy: totalQuestions > 0 ? (score / totalQuestions) * 100 : 0,
-      pointsEarned,
-      timeSpent,
-      level: determineLevel(userLevel),
-      audiosCompleted: audioIndex + 1,
-      averagePlayCount
-    }
-
-    onComplete(results)
   }
 
   const formatTime = (seconds: number) => {

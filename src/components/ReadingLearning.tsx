@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -205,6 +205,27 @@ export default function ReadingLearning({
     setWordsRead(0)
   }
 
+  // セッション終了
+  const endSession = useCallback(() => {
+    setSessionActive(false)
+    const timeSpent = sessionStartTime 
+      ? (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60 
+      : sessionDuration
+
+    const results: ReadingSessionResults = {
+      totalQuestions: totalQuestions,
+      correctAnswers: score,
+      accuracy: totalQuestions > 0 ? (score / totalQuestions) * 100 : 0,
+      pointsEarned,
+      passagesCompleted: passageIndex + 1,
+      averageWordsPerMinute: sessionStartTime ? Math.round(wordsRead / ((new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60)) : 0,
+      timeSpent,
+      level: determineLevel(userLevel)
+    }
+
+    onComplete(results)
+  }, [sessionStartTime, sessionDuration, totalQuestions, score, pointsEarned, passageIndex, wordsRead, userLevel, onComplete])
+
   // タイマー
   useEffect(() => {
     if (sessionActive && timeRemaining > 0) {
@@ -265,29 +286,6 @@ export default function ReadingLearning({
         endSession()
       }
     }
-  }
-
-  // セッション終了
-  const endSession = () => {
-    setSessionActive(false)
-    const timeSpent = sessionStartTime 
-      ? (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60 
-      : sessionDuration
-
-    const readingSpeed = timeSpent > 0 ? wordsRead / timeSpent : 0
-
-    const results: ReadingSessionResults = {
-      totalQuestions: totalQuestions,
-      correctAnswers: score,
-      accuracy: totalQuestions > 0 ? (score / totalQuestions) * 100 : 0,
-      pointsEarned,
-      readingSpeed,
-      timeSpent,
-      level: determineLevel(userLevel),
-      passagesRead: passageIndex + (readingPhase ? 0 : 1)
-    }
-
-    onComplete(results)
   }
 
   const formatTime = (seconds: number) => {
