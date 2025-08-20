@@ -66,6 +66,11 @@ let db: IDBPDatabase | null = null
 async function getDB(): Promise<IDBPDatabase> {
   if (db) return db
 
+  // ブラウザ環境かチェック
+  if (typeof window === 'undefined' || typeof indexedDB === 'undefined') {
+    throw new Error('IndexedDB is not available in this environment')
+  }
+
   db = await openDB(DB_NAME, DB_VERSION, {
     upgrade(db) {
       // ユーザープロフィールストア
@@ -94,7 +99,6 @@ async function getDB(): Promise<IDBPDatabase> {
 
 // ユーザープロフィール作成
 export async function createUserProfile(profileData: Partial<UserProfile>): Promise<UserProfile> {
-  const db = await getDB()
   const now = new Date().toISOString()
   
   const profile: UserProfile = {
@@ -127,37 +131,113 @@ export async function createUserProfile(profileData: Partial<UserProfile>): Prom
     updatedAt: now
   }
 
-  await db.put('profiles', profile)
+  try {
+    const db = await getDB()
+    await db.put('profiles', profile)
+    
+    // バックアップとしてローカルストレージにも保存
+    try {
+      localStorage.setItem('noutenkyo-profile', JSON.stringify(profile))
+    } catch (localStorageError) {
+      console.warn('Failed to backup profile to localStorage:', localStorageError)
+    }
+  } catch (error) {
+    console.error('Error creating user profile in IndexedDB:', error)
+    
+    // フォールバック: ローカルストレージに直接保存
+    try {
+      localStorage.setItem('noutenkyo-profile', JSON.stringify(profile))
+    } catch (localStorageError) {
+      console.error('Error creating user profile in localStorage:', localStorageError)
+      throw error // 元のエラーを再スロー
+    }
+  }
+  
   return profile
+}
 }
 
 // ユーザープロフィール取得
 export async function getUserProfile(id?: string): Promise<UserProfile | null> {
-  const db = await getDB()
-  
-  if (id) {
-    return await db.get('profiles', id) || null
+  try {
+    const db = await getDB()
+    
+    if (id) {
+      return await db.get('profiles', id) || null
+    }
+    
+    // IDが指定されていない場合は最初のプロフィールを返す
+    const profiles = await db.getAll('profiles')
+    return profiles[0] || null
+  } catch (error) {
+    console.error('Error getting user profile from IndexedDB:', error)
+    
+    // フォールバック: ローカルストレージから取得
+    try {
+      const profileJson = localStorage.getItem('noutenkyo-profile')
+      if (profileJson) {
+        return JSON.parse(profileJson)
+      }
+    } catch (localStorageError) {
+      console.error('Error getting user profile from localStorage:', localStorageError)
+    }
+    
+    return null
   }
-  
-  // IDが指定されていない場合は最初のプロフィールを返す
-  const profiles = await db.getAll('profiles')
-  return profiles[0] || null
 }
 
 // ユーザープロフィール更新
 export async function updateUserProfile(profileData: Partial<UserProfile> & { id: string }): Promise<UserProfile> {
-  const db = await getDB()
-  const existing = await db.get('profiles', profileData.id)
-  
-  if (!existing) {
-    throw new Error('Profile not found')
-  }
+  try {
+    const db = await getDB()
+    const existing = await db.get('profiles', profileData.id)
+    
+    if (!existing) {
+      throw new Error('Profile not found')
+    }
 
-  const updated: UserProfile = {
-    ...existing,
-    ...profileData,
-    updatedAt: new Date().toISOString()
+    const updated: UserProfile = {
+      ...existing,
+      ...profileData,
+      updatedAt: new Date().toISOString()
+    }
+    
+    await db.put('profiles', updated)
+    
+    // バックアップとしてローカルストレージにも保存
+    try {
+      localStorage.setItem('noutenkyo-profile', JSON.stringify(updated))
+    } catch (localStorageError) {
+      console.warn('Failed to backup profile to localStorage:', localStorageError)
+    }
+    
+    return updated
+  } catch (error) {
+    console.error('Error updating user profile in IndexedDB:', error)
+    
+    // フォールバック: ローカルストレージに直接保存
+    try {
+      const profileJson = localStorage.getItem('noutenkyo-profile')
+      let existing = profileJson ? JSON.parse(profileJson) : null
+      
+      if (!existing) {
+        throw new Error('Profile not found in localStorage')
+      }
+      
+      const updated: UserProfile = {
+        ...existing,
+        ...profileData,
+        updatedAt: new Date().toISOString()
+      }
+      
+      localStorage.setItem('noutenkyo-profile', JSON.stringify(updated))
+      return updated
+    } catch (localStorageError) {
+      console.error('Error updating user profile in localStorage:', localStorageError)
+      throw error // 元のエラーを再スロー
+    }
   }
+}
 
   await db.put('profiles', updated)
   return updated
@@ -246,39 +326,79 @@ async function getGoalById(goalId: string): Promise<StudyGoal | null> {
 
 // 統計計算
 export async function calculateProfileStats(profileId: string) {
-  // storage.tsから学習セッションを取得
-  const { getAllStudySessions, getAllUserStates } = await import('./storage')
-  
-  const sessions = await getAllStudySessions()
-  const states = await getAllUserStates()
-  
-  const totalSessions = sessions.length
-  const totalStudyTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0)
-  const averageScore = sessions.length > 0 
-    ? sessions.reduce((sum, session) => sum + (session.score || 0), 0) / sessions.length 
-    : 0
-  
-  // 継続日数計算
-  const uniqueDates = [...new Set(sessions.map(s => s.timestamp.split('T')[0]))]
-  const sortedDates = uniqueDates.sort()
-  let streak = 0
-  const today = new Date().toISOString().split('T')[0]
-  
-  for (let i = sortedDates.length - 1; i >= 0; i--) {
-    const date = sortedDates[i]
-    const daysDiff = Math.floor((new Date(today).getTime() - new Date(date).getTime()) / (1000 * 60 * 60 * 24))
+  try {
+    // storage.tsから学習セッションを取得
+    const { getAllStudySessions, getAllUserStates } = await import('./storage')
     
-    if (daysDiff === streak) {
-      streak++
-    } else {
-      break
+    let sessions = []
+    let states = []
+    
+    try {
+      sessions = await getAllStudySessions()
+      states = await getAllUserStates()
+    } catch (error) {
+      console.warn('Failed to load sessions or states:', error)
+      // 空の配列で続行
+    }
+    
+    const totalSessions = sessions.length
+    const totalStudyTime = sessions.reduce((sum, session) => sum + (session.duration || 0), 0)
+    const averageScore = sessions.length > 0 
+      ? sessions.reduce((sum, session) => sum + (session.score || 0), 0) / sessions.length 
+      : 0
+    
+    // 継続日数計算
+    const uniqueDates = [...new Set(sessions.map(s => s.timestamp.split('T')[0]))]
+    const sortedDates = uniqueDates.sort()
+    let streak = 0
+    const today = new Date().toISOString().split('T')[0]
+  
+    for (let i = sortedDates.length - 1; i >= 0; i--) {
+      const date = sortedDates[i]
+      const daysDiff = Math.floor((new Date(today).getTime() - new Date(date).getTime()) / (1000 * 60 * 60 * 24))
+      
+      if (daysDiff === streak) {
+        streak++
+      } else {
+        break
+      }
+    }
+
+    // 様々な学習データ集計
+    const vocabularyLearned = states.filter(s => s.type === 'vocabulary' && s.completed).length
+    const grammarMastered = states.filter(s => s.type === 'grammar' && s.completed).length
+    const readingCompleted = states.filter(s => s.type === 'reading' && s.completed).length
+    const listeningCompleted = states.filter(s => s.type === 'listening' && s.completed).length
+
+    return {
+      totalSessions,
+      totalStudyTime,
+      averageScore: Math.round(averageScore),
+      streak,
+      vocabularyLearned,
+      grammarMastered,
+      readingCompleted,
+      listeningCompleted,
+      // クライアント側の計算で有用な値を追加
+      lastUpdated: new Date().toISOString()
+    }
+  } catch (error) {
+    console.error('Error calculating profile stats:', error)
+    
+    // エラー時のフォールバック統計
+    return {
+      totalSessions: 0,
+      totalStudyTime: 0,
+      averageScore: 0,
+      streak: 0,
+      vocabularyLearned: 0,
+      grammarMastered: 0,
+      readingCompleted: 0,
+      listeningCompleted: 0,
+      lastUpdated: new Date().toISOString()
     }
   }
-
-  return {
-    totalSessions,
-    totalStudyTime,
-    averageScore: Math.round(averageScore),
+}
     currentStreak: streak,
     totalStudyDays: uniqueDates.length,
     averageSessionTime: totalSessions > 0 ? Math.round(totalStudyTime / totalSessions) : 0
