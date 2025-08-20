@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Card,
@@ -60,13 +60,13 @@ const VocabularyFlashcard: React.FC = () => {
 
   const router = useRouter()
 
-  // 全単語データを結合
-  const allVocabulary = [
+  // 全単語データを結合（memoized）
+  const allVocabulary = useMemo(() => [
     ...BASIC_VOCABULARY,
     ...INTERMEDIATE_VOCABULARY,
     ...ADVANCED_VOCABULARY,
     ...EXPERT_VOCABULARY
-  ]
+  ], [])
 
   // ローカルストレージからお気に入りと閲覧履歴を取得
   useEffect(() => {

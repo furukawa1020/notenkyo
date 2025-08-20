@@ -790,7 +790,7 @@ export default function VocabularyPage() {
                           <p className="font-medium text-blue-600">{word.meaning}</p>
                           {word.exampleSentences.length > 0 && (
                             <p className="text-sm text-gray-700 mt-2 italic">
-                              "{word.exampleSentences[0].english}"
+                              &ldquo;{word.exampleSentences[0].english}&rdquo;
                             </p>
                           )}
                         </div>

@@ -273,7 +273,7 @@ export default function ListeningLearning({
     } else if (timeRemaining <= 0 && sessionActive) {
       endSession()
     }
-  }, [sessionActive, timeRemaining])
+  }, [sessionActive, timeRemaining, endSession])
 
   // 音声イベントリスナー設定
   const setupAudioEventListeners = (audio: HTMLAudioElement) => {

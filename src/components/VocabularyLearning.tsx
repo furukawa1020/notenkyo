@@ -151,7 +151,7 @@ export default function VocabularyLearning({
     } else if (timeRemaining <= 0 && sessionActive) {
       endSession()
     }
-  }, [sessionActive, timeRemaining])
+  }, [sessionActive, timeRemaining, endSession])
 
   // 回答処理
   const handleAnswer = (optionIndex: number) => {

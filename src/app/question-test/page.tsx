@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -29,6 +29,8 @@ export default function QuestionTestPage() {
       generateNewQuestion()
     }
     loadData()
+    generateNewQuestion()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const generateNewQuestion = async () => {

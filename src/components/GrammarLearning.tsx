@@ -159,7 +159,7 @@ export default function GrammarLearning({
     } else if (timeRemaining <= 0 && sessionActive) {
       endSession()
     }
-  }, [sessionActive, timeRemaining])
+  }, [sessionActive, timeRemaining, endSession])
 
   // 回答送信
   const submitAnswer = () => {

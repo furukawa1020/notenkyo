@@ -215,7 +215,7 @@ export default function ReadingLearning({
     } else if (timeRemaining <= 0 && sessionActive) {
       endSession()
     }
-  }, [sessionActive, timeRemaining])
+  }, [sessionActive, timeRemaining, endSession])
 
   // 文章読了
   const finishReading = () => {
