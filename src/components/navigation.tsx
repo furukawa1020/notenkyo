@@ -44,12 +44,15 @@ const navigationItems = [
     icon: Bell,
     mobileOrder: 4
   },
+  // プロフィール機能は一時的に無効化
+  /*
   {
     name: 'プロフィール',
     href: '/profile',
     icon: User,
     mobileOrder: 5
   },
+  */
   {
     name: 'ワーキングメモリ',
     href: '/working-memory',

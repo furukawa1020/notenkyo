@@ -57,14 +57,51 @@ export default function ProfilePage() {
     try {
       setIsLoading(true)
       
+      // IndexedDBが利用可能かチェック
+      if (typeof window === 'undefined' || typeof indexedDB === 'undefined') {
+        console.error('IndexedDB is not available')
+        setIsLoading(false)
+        return
+      }
+      
       let userProfile = await getUserProfile()
       
       // プロフィールがない場合は初期作成
       if (!userProfile) {
-        userProfile = await createUserProfile({
-          name: 'のうてんきょユーザー',
-          level: 'intermediate'
-        })
+        try {
+          userProfile = await createUserProfile({
+            name: 'のうてんきょユーザー',
+            level: 'intermediate'
+          })
+        } catch (createError) {
+          console.error('Failed to create profile:', createError)
+          // フォールバックプロファイルを作成
+          userProfile = {
+            id: `profile_${Date.now()}`,
+            name: 'のうてんきょユーザー',
+            joinDate: new Date().toISOString().split('T')[0],
+            studyGoals: [],
+            preferences: {
+              maxDailyStudyTime: 60,
+              preferredStudyTimes: ['evening'],
+              focusAreas: ['vocabulary', 'grammar'],
+              adhdSupport: false,
+              weatherIntegration: false,
+              notifications: {
+                studyReminders: true,
+                achievements: true,
+                weeklyReports: true
+              }
+            },
+            level: 'intermediate',
+            achievements: [],
+            totalStudyDays: 0,
+            currentStreak: 0,
+            totalPoints: 0,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        }
       }
       
       setProfile(userProfile)
@@ -77,9 +114,24 @@ export default function ProfilePage() {
         level: userProfile.level
       })
       
-      // 統計データ取得
-      const profileStats = await calculateProfileStats(userProfile.id)
-      setStats(profileStats)
+      try {
+        // 統計データ取得
+        const profileStats = await calculateProfileStats(userProfile.id)
+        setStats(profileStats)
+      } catch (statsError) {
+        console.error('Failed to load stats:', statsError)
+        // フォールバック統計
+        setStats({
+          totalStudyHours: 0,
+          averageDailyStudy: 0,
+          completedGoals: 0,
+          longestStreak: 0,
+          vocabularyLearned: 0,
+          grammarPointsMastered: 0,
+          readingPracticeCompleted: 0,
+          listeningExercisesCompleted: 0
+        })
+      }
       
     } catch (error) {
       console.error('Failed to load profile:', error)
