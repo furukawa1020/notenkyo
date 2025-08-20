@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -149,6 +149,26 @@ export default function GrammarLearning({
     setShowAnswer(false)
   }
 
+  // セッション終了
+  const endSession = useCallback(() => {
+    setSessionActive(false)
+    const timeSpent = sessionStartTime 
+      ? (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60 
+      : sessionDuration
+
+    const results: GrammarSessionResults = {
+      totalQuestions: currentIndex + 1,
+      correctAnswers: score,
+      accuracy: (score / Math.max(currentIndex + 1, 1)) * 100,
+      pointsEarned,
+      categoriesStudied,
+      timeSpent,
+      level: determineLevel(userLevel)
+    }
+
+    onComplete(results)
+  }, [sessionStartTime, sessionDuration, currentIndex, score, pointsEarned, categoriesStudied, userLevel, onComplete])
+
   // タイマー
   useEffect(() => {
     if (sessionActive && timeRemaining > 0) {
@@ -191,26 +211,6 @@ export default function GrammarLearning({
     } else {
       endSession()
     }
-  }
-
-  // セッション終了
-  const endSession = () => {
-    setSessionActive(false)
-    const timeSpent = sessionStartTime 
-      ? (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60 
-      : sessionDuration
-
-    const results: GrammarSessionResults = {
-      totalQuestions: currentIndex + 1,
-      correctAnswers: score,
-      accuracy: (score / Math.max(currentIndex + 1, 1)) * 100,
-      pointsEarned,
-      categoriesStudied,
-      timeSpent,
-      level: determineLevel(userLevel)
-    }
-
-    onComplete(results)
   }
 
   const formatTime = (seconds: number) => {

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
@@ -141,6 +141,25 @@ export default function VocabularyLearning({
     setOptions(generateOptions(words[0]))
   }
 
+  // セッション終了
+  const endSession = useCallback(() => {
+    setSessionActive(false)
+    const timeSpent = sessionStartTime 
+      ? (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60 
+      : sessionDuration
+
+    const results: VocabularySessionResults = {
+      totalWords: currentIndex + 1,
+      correctAnswers: score,
+      accuracy: (score / (currentIndex + 1)) * 100,
+      wordsLearned,
+      timeSpent,
+      level: determineLevel(userLevel)
+    }
+
+    onComplete(results)
+  }, [sessionStartTime, sessionDuration, currentIndex, score, wordsLearned, userLevel, onComplete])
+
   // タイマー
   useEffect(() => {
     if (sessionActive && timeRemaining > 0) {
@@ -192,25 +211,6 @@ export default function VocabularyLearning({
     } else {
       endSession()
     }
-  }
-
-  // セッション終了
-  const endSession = () => {
-    setSessionActive(false)
-    const timeSpent = sessionStartTime 
-      ? (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60 
-      : sessionDuration
-
-    const results: VocabularySessionResults = {
-      totalWords: currentIndex + 1,
-      correctAnswers: score,
-      accuracy: (score / (currentIndex + 1)) * 100,
-      wordsLearned,
-      timeSpent,
-      level: determineLevel(userLevel)
-    }
-
-    onComplete(results)
   }
 
   // 発音機能（実際のTTS）
