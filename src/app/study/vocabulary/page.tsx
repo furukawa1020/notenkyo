@@ -54,7 +54,6 @@ function convertVocabularyEntry(entry: VocabularyEntry): VocabularyItem {
     antonyms: entry.antonyms,
     collocations: entry.collocations,
     categories: entry.categories,
-    audioUrl: entry.audioUrl,
     
     // UI用変換プロパティ
     meaning: entry.meanings.join(', '),
