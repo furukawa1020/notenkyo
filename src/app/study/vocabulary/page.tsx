@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { getAllVocabulary, getVocabularyByLevel, VocabularyEntry } from '@/lib/vocabulary-database'
+import { getAllVocabulary, getVocabularyByLevel, VocabularyEntry } from '@/lib/enhanced-vocabulary-database'
 import { saveTaskProgress } from '@/lib/storage'
 import { getUserProfile } from '@/lib/profile-manager'
 import VocabularyLearning from '@/components/VocabularyLearning'
@@ -23,15 +23,14 @@ interface VocabularyItem {
   word: string
   pronunciation: string
   meanings: string[]
-  partOfSpeech: string
-  exampleSentences: Array<{ english: string; japanese: string; context: string }>
-  level: number // レベルを数値に変換（1-4）
+  partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb' | 'preposition' | 'conjunction' | 'other'
+  exampleSentences: Array<{ english: string; japanese: string; context: 'business' | 'daily' | 'academic' | 'technical' }>
+  level: number // UI用に数値に変換後のレベル（1-4）
   frequency: number
   synonyms: string[]
   antonyms: string[]
   collocations: string[]
   categories: string[]
-  audioUrl?: string
   
   // UI用の追加プロパティ
   meaning: string // meanings配列を文字列に変換
