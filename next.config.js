@@ -4,6 +4,10 @@ const nextConfig = {
   images: {
     unoptimized: true
   },
+  // Netlify deployment optimization
+  experimental: {
+    appDir: true
+  },
   async headers() {
     return [
       {
