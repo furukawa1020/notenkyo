@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
-import { VocabularyEntry, getVocabularyByLevel, getRandomVocabulary } from '@/lib/enhanced-vocabulary-database'
+import { VocabularyEntry, getVocabularyByLevel, getRandomVocabulary } from '@/lib/fixed-vocabulary-database'
 import { speakWordWithDetails } from '@/lib/audio-manager'
 import { Volume2, BookOpen, Brain, Target, CheckCircle, XCircle, Star, HelpCircle } from 'lucide-react'
 
@@ -74,19 +74,24 @@ export default function VocabularyLearning({
       .filter(word => word.id !== currentWord?.id) // 現在の単語を除外
       .slice(0, 10)
     
-    // 各単語から最初の意味を取得
+    // 各単語から最初の意味を取得（日本語のみを確保）
     const wrongOptions = randomWords
       .map(word => ({ 
         meaning: word.meanings[0], 
         isCorrect: false 
       }))
-      .filter(option => option.meaning !== correctMeaning) // 正解と同じ意味を除外
+      .filter(option => 
+        option.meaning !== correctMeaning && // 正解と同じ意味を除外
+        /^[ひらがなカタカナ漢字ー・]+$/.test(option.meaning) // 日本語のみを確保
+      )
       .slice(0, 3) // 3つだけ取得
     
-    // 十分な数の選択肢がない場合のバックアップ選択肢
+    // 日本語のみのバックアップ選択肢
     const backupChoices = [
       "計画", "戦略", "プロセス", "分析", "評価", "開発", "実装", "調査", 
-      "報告", "構造", "管理", "設計", "技術", "成果", "作業", "支援"
+      "報告", "構造", "管理", "設計", "技術", "成果", "作業", "支援",
+      "改善", "効率", "品質", "会議", "資料", "内容", "目標", "結果",
+      "方法", "手順", "状況", "問題", "解決", "確認", "検討", "決定"
     ]
     
     // 必要な数の選択肢を確保
@@ -104,9 +109,13 @@ export default function VocabularyLearning({
   const generateOptions = (word: VocabularyEntry): ChoiceOption[] => {
     if (!word) return []
     
-    // 正解の選択肢（最初の意味を使用）
+    // 正解の選択肢（日本語の意味のみを使用）
+    const japaneseMeanings = word.meanings.filter(meaning => 
+      /^[ひらがなカタカナ漢字ー・]+$/.test(meaning)
+    )
+    
     const correctOption: ChoiceOption = { 
-      meaning: word.meanings[0], 
+      meaning: japaneseMeanings[0] || word.meanings[0], // フォールバック
       isCorrect: true 
     }
     
