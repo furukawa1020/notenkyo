@@ -83,10 +83,10 @@ export default function VocabularyLearning({
     // ランダムに選択された単語からの意味を取得
     const randomWords = shuffleArray(candidateWords)
       .filter(word => word.id !== currentWord?.id) // 現在の単語を除外
-      .slice(0, 100) // より多くの候補から選択
+      .slice(0, 200) // さらに多くの候補から選択
     
     // 各単語から最初の意味を取得
-    const wrongOptions = randomWords
+    const candidateOptions = randomWords
       .map(word => ({ 
         meaning: word.meanings[0], 
         isCorrect: false 
@@ -94,44 +94,59 @@ export default function VocabularyLearning({
       .filter(option => 
         option.meaning !== correctMeaning && // 正解と同じ意味を除外
         option.meaning.length > 1 && // 1文字の意味を除外
-        !option.meaning.includes('ない') && // 「ない」を含む不適切な選択肢を除外
-        !option.meaning.includes('〜') && // 「〜」を含む不適切な選択肢を除外
-        !option.meaning.includes('する') && // 動詞の活用形を除外
-        !option.meaning.includes('化') && // 「〜化」のような不自然な選択肢を除外
-        option.meaning !== '従業員' && // 明らかに関係ない名詞を除外
+        !option.meaning.includes('ない') && // 不適切な選択肢を除外
+        !option.meaning.includes('〜') && 
+        !option.meaning.includes('する') && 
+        !option.meaning.includes('化') && 
+        !option.meaning.includes('できる') &&
+        !option.meaning.includes('less') &&
+        option.meaning !== '従業員' && 
         option.meaning !== '製品' && 
-        option.meaning !== '担当者'
+        option.meaning !== '担当者' &&
+        option.meaning !== '豊富な' // 明らかに関係ない選択肢を除外
       )
-      .slice(0, 3) // 3つだけ取得
+    
+    // 重複を排除しつつ3つ選択
+    const wrongOptions: ChoiceOption[] = []
+    const usedMeanings = new Set([correctMeaning])
+    
+    for (const option of candidateOptions) {
+      if (!usedMeanings.has(option.meaning) && wrongOptions.length < 3) {
+        wrongOptions.push(option)
+        usedMeanings.add(option.meaning)
+      }
+    }
     
     // 十分な数の選択肢がない場合のカテゴリ別バックアップ選択肢
     const getBackupChoices = (partOfSpeech: string, wordLevel: string) => {
       if (partOfSpeech === 'adverb') {
-        return ["非常に", "特に", "主に", "通常", "一般的に", "具体的に", "効果的に", "直接的に", "間接的に", "最終的に"]
+        return ["非常に", "特に", "主に", "通常", "一般的に", "具体的に", "効果的に", "直接的に", "間接的に", "最終的に", "実際に", "明確に", "簡単に", "迅速に", "正確に"]
       } else if (partOfSpeech === 'verb') {
-        return ["実施する", "実行する", "管理する", "分析する", "評価する", "開発する", "改善する", "維持する", "支援する", "監督する"]
+        return ["実施する", "実行する", "管理する", "分析する", "評価する", "開発する", "改善する", "維持する", "支援する", "監督する", "確認する", "調整する", "計画する", "組織する", "実現する"]
       } else if (partOfSpeech === 'adjective') {
-        return ["効果的な", "重要な", "必要な", "適切な", "具体的な", "一般的な", "詳細な", "複雑な", "単純な", "明確な"]
+        return ["効果的な", "重要な", "必要な", "適切な", "具体的な", "一般的な", "詳細な", "複雑な", "単純な", "明確な", "正確な", "迅速な", "安全な", "確実な", "継続的な"]
       } else { // noun や other
         switch (wordLevel) {
           case 'basic':
-            return ["会社", "会議", "計画", "報告", "作業", "部門", "責任", "結果", "目標", "方法"]
+            return ["会社", "会議", "計画", "報告", "作業", "部門", "責任", "結果", "目標", "方法", "時間", "場所", "人材", "資源", "情報"]
           case 'intermediate':
-            return ["戦略", "分析", "評価", "管理", "システム", "プロセス", "効率", "品質", "成長", "改善"]
+            return ["戦略", "分析", "評価", "管理", "システム", "プロセス", "効率", "品質", "成長", "改善", "統制", "監視", "調整", "調査", "研究"]
           case 'advanced':
-            return ["最適化", "統合", "革新", "持続可能性", "競争力", "透明性", "柔軟性", "信頼性", "収益性", "生産性"]
+            return ["最適化", "統合", "革新", "持続可能性", "競争力", "透明性", "柔軟性", "信頼性", "収益性", "生産性", "多様性", "専門性", "創造性", "独創性", "先進性"]
           default:
-            return ["統合", "革新", "最適化", "効率化", "標準化", "体系化", "合理化", "高度化", "専門化", "多様化"]
+            return ["統合", "革新", "最適化", "効率化", "標準化", "体系化", "合理化", "高度化", "専門化", "多様化", "国際化", "情報化", "自動化", "機械化", "電子化"]
         }
       }
     }
     
-    // 必要な数の選択肢を確保
+    // 必要な数の選択肢を確保（重複チェック付き）
     const backupChoices = getBackupChoices(currentPartOfSpeech || 'noun', level)
-    while (wrongOptions.length < 3) {
-      const randomBackup = backupChoices[Math.floor(Math.random() * backupChoices.length)]
-      if (!wrongOptions.some(opt => opt.meaning === randomBackup) && randomBackup !== correctMeaning) {
-        wrongOptions.push({ meaning: randomBackup, isCorrect: false })
+    const shuffledBackup = shuffleArray(backupChoices)
+    
+    for (const backupChoice of shuffledBackup) {
+      if (!usedMeanings.has(backupChoice) && wrongOptions.length < 3) {
+        wrongOptions.push({ meaning: backupChoice, isCorrect: false })
+        usedMeanings.add(backupChoice)
       }
     }
     
@@ -227,10 +242,8 @@ export default function VocabularyLearning({
     // 回答表示
     setShowAnswer(true)
     
-    // 2.5秒後に次の単語
-    setTimeout(() => {
-      nextWord()
-    }, 2500)
+    // 自動で次に進まずに、ユーザーのタップを待つ
+    // setTimeout は削除
   }
 
   // 次の単語
@@ -424,6 +437,17 @@ export default function VocabularyLearning({
                     <p className="text-muted-foreground">{sentence.japanese}</p>
                   </div>
                 ))}
+              </div>
+              
+              {/* 次へ進むボタン */}
+              <div className="pt-4 flex justify-center">
+                <Button 
+                  onClick={nextWord}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  size="lg"
+                >
+                  {currentIndex >= sessionWords.length - 1 ? "結果を見る" : "次の問題へ →"}
+                </Button>
               </div>
             </div>
           )}
