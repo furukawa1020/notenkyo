@@ -72,7 +72,7 @@ export default function VocabularyLearning({
     // ランダムに選択された単語からの意味を取得
     const randomWords = shuffleArray(levelWords)
       .filter(word => word.id !== currentWord?.id) // 現在の単語を除外
-      .slice(0, 10)
+      .slice(0, 50) // より多くの候補から選択
     
     // 各単語から最初の意味を取得
     const wrongOptions = randomWords
@@ -80,16 +80,32 @@ export default function VocabularyLearning({
         meaning: word.meanings[0], 
         isCorrect: false 
       }))
-      .filter(option => option.meaning !== correctMeaning) // 正解と同じ意味を除外
+      .filter(option => 
+        option.meaning !== correctMeaning && // 正解と同じ意味を除外
+        option.meaning.length > 1 && // 1文字の意味を除外
+        !option.meaning.includes('ない') && // 「ない」を含む不適切な選択肢を除外
+        !option.meaning.includes('〜') // 「〜」を含む不適切な選択肢を除外
+      )
       .slice(0, 3) // 3つだけ取得
     
-    // 十分な数の選択肢がない場合のバックアップ選択肢
-    const backupChoices = [
-      "計画", "戦略", "プロセス", "分析", "評価", "開発", "実装", "調査", 
-      "報告", "構造", "管理", "設計", "技術", "成果", "作業", "支援"
-    ]
+    // 十分な数の選択肢がない場合のカテゴリ別バックアップ選択肢
+    const getBackupChoices = (wordLevel: string) => {
+      switch (wordLevel) {
+        case 'basic':
+          return ["会社", "会議", "計画", "報告", "作業", "部門", "担当", "責任", "結果", "目標"]
+        case 'intermediate':
+          return ["戦略", "分析", "評価", "開発", "実装", "管理", "構造", "システム", "プロセス", "効率"]
+        case 'advanced':
+          return ["最適化", "統合", "革新", "持続可能性", "競争力", "透明性", "多様性", "柔軟性", "信頼性", "収益性"]
+        case 'expert':
+          return ["差別化", "シナジー", "パラダイム", "イノベーション", "グローバル化", "デジタル変革", "持続可能性", "包括性", "相乗効果", "最適解"]
+        default:
+          return ["戦略", "分析", "評価", "開発", "実装", "管理", "構造", "システム"]
+      }
+    }
     
     // 必要な数の選択肢を確保
+    const backupChoices = getBackupChoices(level)
     while (wrongOptions.length < 3) {
       const randomBackup = backupChoices[Math.floor(Math.random() * backupChoices.length)]
       if (!wrongOptions.some(opt => opt.meaning === randomBackup) && randomBackup !== correctMeaning) {
