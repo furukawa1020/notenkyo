@@ -66,54 +66,87 @@ export default function VocabularyLearning({
 
   // 不正解の選択肢を生成する関数
   const generateWrongChoices = (correctMeaning: string, level: string): ChoiceOption[] => {
-    // 同じレベルの単語からランダムに選択
-    const levelWords = getVocabularyByLevel(level as 'basic' | 'intermediate' | 'advanced' | 'expert')
+    // 全レベルの単語から候補を取得（より多様な選択肢のため）
+    const allWords = [
+      ...getVocabularyByLevel('basic'),
+      ...getVocabularyByLevel('intermediate'),
+      ...getVocabularyByLevel('advanced'),
+      ...getVocabularyByLevel('expert')
+    ]
     
-    // ランダムに選択された単語からの意味を取得
-    const randomWords = shuffleArray(levelWords)
-      .filter(word => word.id !== currentWord?.id) // 現在の単語を除外
-      .slice(0, 50) // より多くの候補から選択
+    // 現在の単語と同じカテゴリの単語を優先的に取得
+    const currentCategories = currentWord?.categories || []
+    const sameCategoryWords = allWords.filter(word => 
+      word.categories.some(cat => currentCategories.includes(cat)) &&
+      word.id !== currentWord?.id
+    )
     
-    // 各単語から最初の意味を取得
-    const wrongOptions = randomWords
-      .map(word => ({ 
-        meaning: word.meanings[0], 
-        isCorrect: false 
-      }))
-      .filter(option => 
-        option.meaning !== correctMeaning && // 正解と同じ意味を除外
-        option.meaning.length > 1 && // 1文字の意味を除外
-        !option.meaning.includes('ない') && // 「ない」を含む不適切な選択肢を除外
-        !option.meaning.includes('〜') // 「〜」を含む不適切な選択肢を除外
-      )
-      .slice(0, 3) // 3つだけ取得
+    // カテゴリが一致する単語 + ランダムな単語の組み合わせ
+    const candidateWords = shuffleArray([
+      ...sameCategoryWords.slice(0, 20), // 同カテゴリから20個
+      ...shuffleArray(allWords.filter(word => 
+        word.id !== currentWord?.id && 
+        !sameCategoryWords.includes(word)
+      )).slice(0, 30) // 他のカテゴリから30個
+    ])
     
-    // 十分な数の選択肢がない場合のカテゴリ別バックアップ選択肢
-    const getBackupChoices = (wordLevel: string) => {
-      switch (wordLevel) {
-        case 'basic':
-          return ["会社", "会議", "計画", "報告", "作業", "部門", "担当", "責任", "結果", "目標"]
-        case 'intermediate':
-          return ["戦略", "分析", "評価", "開発", "実装", "管理", "構造", "システム", "プロセス", "効率"]
-        case 'advanced':
-          return ["最適化", "統合", "革新", "持続可能性", "競争力", "透明性", "多様性", "柔軟性", "信頼性", "収益性"]
-        case 'expert':
-          return ["差別化", "シナジー", "パラダイム", "イノベーション", "グローバル化", "デジタル変革", "持続可能性", "包括性", "相乗効果", "最適解"]
-        default:
-          return ["戦略", "分析", "評価", "開発", "実装", "管理", "構造", "システム"]
+    // 各単語から最初の意味を取得し、適切性をチェック
+    const wrongOptions: ChoiceOption[] = []
+    
+    for (const word of candidateWords) {
+      if (wrongOptions.length >= 3) break
+      
+      const meaning = word.meanings[0]
+      
+      // 意味の適切性をチェック
+      if (
+        meaning !== correctMeaning && // 正解と異なる
+        meaning.length >= 2 && // 2文字以上
+        !meaning.includes('ない') && // 「ない」を含まない
+        !meaning.includes('〜') && // 「〜」を含まない
+        !meaning.includes('する') && // 動詞形を避ける
+        !meaning.includes('される') && // 受動態を避ける
+        !wrongOptions.some(opt => opt.meaning === meaning) && // 重複を避ける
+        meaning !== 'な' && meaning !== 'の' && meaning !== 'を' // 助詞を避ける
+      ) {
+        wrongOptions.push({ meaning, isCorrect: false })
       }
     }
     
-    // 必要な数の選択肢を確保
-    const backupChoices = getBackupChoices(level)
-    while (wrongOptions.length < 3) {
-      const randomBackup = backupChoices[Math.floor(Math.random() * backupChoices.length)]
-      if (!wrongOptions.some(opt => opt.meaning === randomBackup) && randomBackup !== correctMeaning) {
-        wrongOptions.push({ meaning: randomBackup, isCorrect: false })
+    // まだ足りない場合は、レベル別の高品質なバックアップ選択肢を使用
+    if (wrongOptions.length < 3) {
+      const getQualityBackupChoices = (wordLevel: string) => {
+        switch (wordLevel) {
+          case 'basic':
+            return ["会社", "会議", "計画", "報告", "作業", "部門", "担当", "責任", "結果", "目標", 
+                   "会計", "売上", "利益", "予算", "契約", "取引", "顧客", "市場", "競争", "成長"]
+          case 'intermediate':
+            return ["戦略", "分析", "評価", "開発", "実装", "管理", "運営", "効率", "品質", "改善",
+                   "革新", "技術", "システム", "プロセス", "手順", "方法", "構造", "組織", "資源", "投資"]
+          case 'advanced':
+            return ["最適化", "統合", "革新", "持続可能性", "競争力", "透明性", "多様性", "柔軟性", 
+                   "グローバル化", "デジタル化", "自動化", "標準化", "専門化", "個人化", "協力", "連携"]
+          case 'expert':
+            return ["シナジー", "パラダイム", "イノベーション", "トランスフォーメーション", 
+                   "サステナビリティ", "ダイバーシティ", "インクルージョン", "レジリエンス", 
+                   "アジリティ", "エクセレンス", "ベストプラクティス", "ベンチマーキング"]
+          default:
+            return ["戦略", "分析", "評価", "開発", "実装", "管理"]
+        }
+      }
+      
+      const backupChoices = getQualityBackupChoices(level)
+      const shuffledBackup = shuffleArray(backupChoices)
+      
+      for (const backup of shuffledBackup) {
+        if (wrongOptions.length >= 3) break
+        if (backup !== correctMeaning && !wrongOptions.some(opt => opt.meaning === backup)) {
+          wrongOptions.push({ meaning: backup, isCorrect: false })
+        }
       }
     }
     
-    return wrongOptions
+    return wrongOptions.slice(0, 3)
   }
 
   // 4つの選択肢を生成
