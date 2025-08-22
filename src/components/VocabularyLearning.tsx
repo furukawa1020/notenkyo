@@ -78,75 +78,72 @@ export default function VocabularyLearning({
     )
     
     // 同じ品詞の単語が不足している場合は全体から選択
-    const candidateWords = samePartWords.length >= 10 ? samePartWords : levelWords
+    const candidateWords = samePartWords.length >= 20 ? samePartWords : levelWords
     
     // ランダムに選択された単語からの意味を取得
     const randomWords = shuffleArray(candidateWords)
       .filter(word => word.id !== currentWord?.id) // 現在の単語を除外
-      .slice(0, 200) // さらに多くの候補から選択
+      .slice(0, 200) // より多くの候補から選択
     
-    // 各単語から最初の意味を取得
-    const candidateOptions = randomWords
-      .map(word => ({ 
-        meaning: word.meanings[0], 
-        isCorrect: false 
-      }))
-      .filter(option => 
-        option.meaning !== correctMeaning && // 正解と同じ意味を除外
-        option.meaning.length > 1 && // 1文字の意味を除外
-        !option.meaning.includes('ない') && // 不適切な選択肢を除外
-        !option.meaning.includes('〜') && 
-        !option.meaning.includes('する') && 
-        !option.meaning.includes('化') && 
-        !option.meaning.includes('できる') &&
-        !option.meaning.includes('less') &&
-        option.meaning !== '従業員' && 
-        option.meaning !== '製品' && 
-        option.meaning !== '担当者' &&
-        option.meaning !== '豊富な' // 明らかに関係ない選択肢を除外
-      )
+    // 各単語の全ての意味から選択肢を生成（重複回避）
+    const allWrongMeanings: string[] = []
+    randomWords.forEach(word => {
+      word.meanings.forEach(meaning => {
+        if (meaning !== correctMeaning && 
+            !allWrongMeanings.includes(meaning) && // 重複を除外
+            meaning.length > 1 && 
+            !meaning.includes('ない') && 
+            !meaning.includes('〜') && 
+            !meaning.includes('する') && 
+            !meaning.includes('化す') &&
+            !meaning.includes('できる') &&
+            meaning !== '従業員' && 
+            meaning !== '製品' && 
+            meaning !== '担当者' &&
+            meaning !== '豊富な') {
+          allWrongMeanings.push(meaning)
+        }
+      })
+    })
     
-    // 重複を排除しつつ3つ選択
-    const wrongOptions: ChoiceOption[] = []
-    const usedMeanings = new Set([correctMeaning])
-    
-    for (const option of candidateOptions) {
-      if (!usedMeanings.has(option.meaning) && wrongOptions.length < 3) {
-        wrongOptions.push(option)
-        usedMeanings.add(option.meaning)
-      }
-    }
+    // シャッフルして3つ選択
+    const shuffledMeanings = shuffleArray(allWrongMeanings)
+    const wrongOptions = shuffledMeanings.slice(0, 3).map(meaning => ({
+      meaning,
+      isCorrect: false
+    }))
     
     // 十分な数の選択肢がない場合のカテゴリ別バックアップ選択肢
-    const getBackupChoices = (partOfSpeech: string, wordLevel: string) => {
+    const getBackupChoices = (partOfSpeech: string, wordLevel: string): string[] => {
       if (partOfSpeech === 'adverb') {
-        return ["非常に", "特に", "主に", "通常", "一般的に", "具体的に", "効果的に", "直接的に", "間接的に", "最終的に", "実際に", "明確に", "簡単に", "迅速に", "正確に"]
+        return ["非常に", "特に", "主に", "通常", "一般的に", "具体的に", "効果的に", "直接的に", "間接的に", "最終的に", "完全に", "部分的に", "正確に", "明確に", "適切に"]
       } else if (partOfSpeech === 'verb') {
-        return ["実施する", "実行する", "管理する", "分析する", "評価する", "開発する", "改善する", "維持する", "支援する", "監督する", "確認する", "調整する", "計画する", "組織する", "実現する"]
+        return ["実施する", "実行する", "管理する", "分析する", "評価する", "開発する", "改善する", "維持する", "支援する", "監督する", "調査する", "検討する", "確認する", "承認する", "拒否する"]
       } else if (partOfSpeech === 'adjective') {
-        return ["効果的な", "重要な", "必要な", "適切な", "具体的な", "一般的な", "詳細な", "複雑な", "単純な", "明確な", "正確な", "迅速な", "安全な", "確実な", "継続的な"]
+        return ["効果的な", "重要な", "必要な", "適切な", "具体的な", "一般的な", "詳細な", "複雑な", "単純な", "明確な", "正確な", "完全な", "不完全な", "十分な", "不十分な"]
       } else { // noun や other
         switch (wordLevel) {
           case 'basic':
-            return ["会社", "会議", "計画", "報告", "作業", "部門", "責任", "結果", "目標", "方法", "時間", "場所", "人材", "資源", "情報"]
+            return ["会社", "会議", "計画", "報告", "作業", "部門", "責任", "結果", "目標", "方法", "問題", "解決", "成功", "失敗", "努力"]
           case 'intermediate':
-            return ["戦略", "分析", "評価", "管理", "システム", "プロセス", "効率", "品質", "成長", "改善", "統制", "監視", "調整", "調査", "研究"]
+            return ["戦略", "分析", "評価", "管理", "システム", "プロセス", "効率", "品質", "成長", "改善", "革新", "発展", "進歩", "変化", "機会"]
           case 'advanced':
-            return ["最適化", "統合", "革新", "持続可能性", "競争力", "透明性", "柔軟性", "信頼性", "収益性", "生産性", "多様性", "専門性", "創造性", "独創性", "先進性"]
+            return ["最適化", "統合", "革新", "持続可能性", "競争力", "透明性", "柔軟性", "信頼性", "収益性", "生産性", "効率性", "創造性", "独創性", "専門性", "多様性"]
           default:
-            return ["統合", "革新", "最適化", "効率化", "標準化", "体系化", "合理化", "高度化", "専門化", "多様化", "国際化", "情報化", "自動化", "機械化", "電子化"]
+            return ["統合", "革新", "最適化", "効率化", "標準化", "体系化", "合理化", "高度化", "専門化", "多様化", "グローバル化", "デジタル化", "自動化", "個別化", "国際化"]
         }
       }
     }
     
     // 必要な数の選択肢を確保（重複チェック付き）
     const backupChoices = getBackupChoices(currentPartOfSpeech || 'noun', level)
-    const shuffledBackup = shuffleArray(backupChoices)
+    const usedMeanings = new Set([correctMeaning, ...wrongOptions.map(opt => opt.meaning)])
     
-    for (const backupChoice of shuffledBackup) {
-      if (!usedMeanings.has(backupChoice) && wrongOptions.length < 3) {
-        wrongOptions.push({ meaning: backupChoice, isCorrect: false })
-        usedMeanings.add(backupChoice)
+    while (wrongOptions.length < 3) {
+      const randomBackup = backupChoices[Math.floor(Math.random() * backupChoices.length)]
+      if (!usedMeanings.has(randomBackup)) {
+        wrongOptions.push({ meaning: randomBackup, isCorrect: false })
+        usedMeanings.add(randomBackup)
       }
     }
     
@@ -241,9 +238,6 @@ export default function VocabularyLearning({
     
     // 回答表示
     setShowAnswer(true)
-    
-    // 自動で次に進まずに、ユーザーのタップを待つ
-    // setTimeout は削除
   }
 
   // 次の単語
@@ -439,14 +433,14 @@ export default function VocabularyLearning({
                 ))}
               </div>
               
-              {/* 次へ進むボタン */}
-              <div className="pt-4 flex justify-center">
+              {/* 次へボタン */}
+              <div className="flex justify-center mt-6">
                 <Button 
                   onClick={nextWord}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="px-8 py-2"
                   size="lg"
                 >
-                  {currentIndex >= sessionWords.length - 1 ? "結果を見る" : "次の問題へ →"}
+                  次の問題へ
                 </Button>
               </div>
             </div>
