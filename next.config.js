@@ -1,13 +1,13 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   trailingSlash: true,
+  output: 'export',
+  distDir: 'out',
   images: {
     unoptimized: true
   },
-  // Netlify deployment optimization
-  experimental: {
-    appDir: true
-  },
+  // Netlify static export configuration
+  assetPrefix: process.env.NODE_ENV === 'production' ? '' : '',
   async headers() {
     return [
       {
