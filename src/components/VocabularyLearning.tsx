@@ -64,34 +64,33 @@ export default function VocabularyLearning({
     return newArray
   }
 
-  // 不正解の選択肢を生成する関数（シンプル版）
-  const generateWrongChoices = (correctMeaning: string): ChoiceOption[] => {
-    // 単語データベースから適当に他の3つの意味を取得
-    const allWords = getRandomVocabulary(200) // 200語からランダム選択
+  // 不正解の選択肢を生成する関数（超シンプル版）
+  const generateWrongChoices = (correctMeaning: string, currentWord: VocabularyEntry): ChoiceOption[] => {
+    // データベースから他の単語をランダムに取得
+    const allWords = getRandomVocabulary(300)
     
     const wrongMeanings: string[] = []
     
+    // 現在の単語以外の単語から意味を取得
     for (const word of allWords) {
-      for (const meaning of word.meanings) {
-        // 正解と同じでない意味を収集
+      // 現在の単語とは違う単語の意味のみを選択
+      if (word.id !== currentWord.id) {
+        // その単語の最初の意味だけ使用（シンプルに）
+        const meaning = word.meanings[0]
         if (meaning !== correctMeaning && !wrongMeanings.includes(meaning)) {
           wrongMeanings.push(meaning)
         }
         // 3つ集まったら終了
         if (wrongMeanings.length >= 3) break
       }
-      if (wrongMeanings.length >= 3) break
     }
     
-    // 3つに満たない場合のバックアップ
-    const backupMeanings = [
-      "管理する", "実施する", "確認する", "提供する", "支援する", "改善する",
-      "開発する", "維持する", "分析する", "評価する", "検討する", "承認する"
-    ]
+    // まだ3つに満たない場合のシンプルなバックアップ
+    const simpleBackups = ["管理する", "実施する", "確認する", "提供する", "支援する"]
     
     while (wrongMeanings.length < 3) {
-      const backup = backupMeanings[wrongMeanings.length]
-      if (backup && backup !== correctMeaning) {
+      const backup = simpleBackups[wrongMeanings.length % simpleBackups.length]
+      if (backup !== correctMeaning && !wrongMeanings.includes(backup)) {
         wrongMeanings.push(backup)
       }
     }
@@ -112,8 +111,8 @@ export default function VocabularyLearning({
       isCorrect: true 
     }
     
-    // 不正解の選択肢を生成
-    const wrongOptions = generateWrongChoices(correctOption.meaning)
+    // 不正解の選択肢を生成（対象単語の情報を渡す）
+    const wrongOptions = generateWrongChoices(correctOption.meaning, word)
     
     // 選択肢をまとめる
     const allOptions = [
