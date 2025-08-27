@@ -120,9 +120,51 @@ export default function VocabularyLearning({
   const generateOptions = (word: VocabularyEntry): ChoiceOption[] => {
     if (!word) return []
     
-    // 正解の選択肢（最初の意味を使用）
+    // 適切な正解の意味を選択する関数
+    const getCleanCorrectMeaning = (word: VocabularyEntry): string => {
+      // 不適切な意味をフィルタリング
+      const isValidMeaning = (meaning: string): boolean => {
+        if (!meaning || meaning.trim().length === 0) return false
+        if (meaning === "〜" || meaning === "物事") return false
+        
+        const lowerMeaning = meaning.toLowerCase()
+        const wordName = word.word.toLowerCase()
+        
+        // 単語名を含む説明的文言を除外
+        if (lowerMeaning.includes(wordName)) return false
+        if (lowerMeaning.includes("の意味") || lowerMeaning.includes("における")) return false
+        if (lowerMeaning.includes("上級") || lowerMeaning.includes("専門")) return false
+        if (lowerMeaning.includes("高度な") || lowerMeaning.includes("advanced")) return false
+        
+        return true
+      }
+      
+      // 単語の意味から適切なものを探す
+      for (const meaning of word.meanings) {
+        if (isValidMeaning(meaning)) {
+          return meaning
+        }
+      }
+      
+      // 適切な意味が見つからない場合のフォールバック
+      // 単語の品詞に基づいて一般的な意味を割り当て
+      const fallbackMeanings: { [key: string]: string } = {
+        'noun': '名詞',
+        'verb': '動詞', 
+        'adjective': '形容詞',
+        'adverb': '副詞',
+        'preposition': '前置詞',
+        'pronoun': '代名詞',
+        'conjunction': '接続詞'
+      }
+      
+      return fallbackMeanings[word.partOfSpeech] || '単語'
+    }
+    
+    // 正解の選択肢（適切な意味を選択）
+    const correctMeaning = getCleanCorrectMeaning(word)
     const correctOption: ChoiceOption = { 
-      meaning: word.meanings[0], 
+      meaning: correctMeaning, 
       isCorrect: true 
     }
     
