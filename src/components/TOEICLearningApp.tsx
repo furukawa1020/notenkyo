@@ -28,6 +28,8 @@ import {
 // コンポーネントのインポート
 import IntegratedLearningSystem from '@/components/IntegratedLearningSystem'
 import NoutenkyoCheckIn from '@/components/NoutenkyoCheckIn'
+import { InstallButton } from '@/components/install-button'
+import { PWAInstallInstructions } from '@/components/pwa-install'
 import { learningStorage, createInitialProgress } from '@/lib/learning-storage'
 
 interface AppState {
@@ -325,10 +327,16 @@ export default function TOEICLearningApp() {
               </AlertDescription>
             </Alert>
             
-            <Button onClick={completeSetup} className="w-full" size="lg">
-              <Zap className="h-5 w-5 mr-2" />
-              学習を開始
-            </Button>
+            <div className="flex flex-col gap-3">
+              <Button onClick={completeSetup} className="w-full" size="lg">
+                <Zap className="h-5 w-5 mr-2" />
+                学習を開始
+              </Button>
+              
+              <div className="flex justify-center">
+                <InstallButton />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -659,6 +667,26 @@ export default function TOEICLearningApp() {
                       </Button>
                     </div>
                   </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <h3 className="font-semibold">アプリ設定</h3>
+                <div className="space-y-3">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium text-blue-900">アプリとしてインストール</h4>
+                        <p className="text-sm text-blue-700 mt-1">
+                          オフライン学習・高速起動・プッシュ通知が利用可能
+                        </p>
+                      </div>
+                      <div className="ml-4">
+                        <InstallButton />
+                      </div>
+                    </div>
+                  </div>
+                  <PWAInstallInstructions />
                 </div>
               </div>
               
