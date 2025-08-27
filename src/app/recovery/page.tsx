@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -107,6 +107,16 @@ export default function RecoveryPage() {
 
   const recommendedActivities = getRecommendedActivities(currentMood)
 
+  // 活動完了ハンドラー（useCallbackで定義）
+  const handleActivityComplete = useCallback(() => {
+    if (selectedActivity) {
+      setCompletedActivities([...completedActivities, selectedActivity.id])
+      setIsActive(false)
+      setSelectedActivity(null)
+      // 完了通知やポジティブフィードバックを表示
+    }
+  }, [selectedActivity, completedActivities])
+
   // タイマー機能
   useEffect(() => {
     if (isActive && timeRemaining > 0) {
@@ -117,7 +127,7 @@ export default function RecoveryPage() {
     } else if (timeRemaining === 0 && isActive) {
       handleActivityComplete()
     }
-  }, [isActive, timeRemaining])
+  }, [isActive, timeRemaining, handleActivityComplete])
 
   const startActivity = (activity: RecoveryActivity) => {
     setSelectedActivity(activity)
@@ -136,15 +146,6 @@ export default function RecoveryPage() {
   const resetActivity = () => {
     setIsActive(false)
     setTimeRemaining(selectedActivity?.duration ? selectedActivity.duration * 60 : 0)
-  }
-
-  const handleActivityComplete = () => {
-    if (selectedActivity) {
-      setCompletedActivities([...completedActivities, selectedActivity.id])
-      setIsActive(false)
-      setSelectedActivity(null)
-      // 完了通知やポジティブフィードバックを表示
-    }
   }
 
   const formatTime = (seconds: number): string => {
@@ -258,7 +259,7 @@ export default function RecoveryPage() {
               </div>
               
               <div className="text-center text-gray-600">
-                <p className="italic">"{selectedActivity.description}"</p>
+                <p className="italic">&ldquo;{selectedActivity.description}&rdquo;</p>
               </div>
             </CardContent>
           </Card>
