@@ -238,7 +238,8 @@ export class RealContentGenerator {
       difficulty = 'basic'
     }
     
-    const questions = getRandomGrammar(questionCount, difficulty)
+    const difficultyQuestions = getGrammarByLevel(difficulty)
+    const questions = difficultyQuestions.sort(() => Math.random() - 0.5).slice(0, questionCount)
     const estimatedTime = Math.ceil(questionCount * timePerQuestion)
     
     return {
