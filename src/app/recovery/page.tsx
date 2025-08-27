@@ -27,7 +27,7 @@ interface RecoveryActivity {
   id: string
   name: string
   description: string
-  icon: React.ComponentType
+  icon: React.ComponentType<{ className?: string }>
   duration: number // 分
   difficulty: 'ultra-light' | 'light' | 'gentle'
   benefits: string[]
