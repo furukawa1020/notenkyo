@@ -1,5 +1,5 @@
 import { UserState, Task, Session, SRSItem, KPI } from './types'
-import { MASSIVE_VOCABULARY_DATABASE } from './massive-vocabulary-database'
+import { CLEAN_VOCABULARY } from './enhanced-vocabulary-database'
 import { MASSIVE_GRAMMAR_DATABASE } from './massive-grammar-database'
 import { COMPREHENSIVE_LISTENING, COMPREHENSIVE_READING } from './massive-content-database'
 

@@ -1,5 +1,5 @@
 // 大規模TOEIC学習エンジン - 12,000単語・2,000文法・1,500コンテンツ問題対応
-import { MASSIVE_VOCABULARY_DATABASE } from './massive-vocabulary-database'
+import { CLEAN_VOCABULARY } from './enhanced-vocabulary-database'
 import { MASSIVE_GRAMMAR_DATABASE } from './massive-grammar-database'
 import { COMPREHENSIVE_LISTENING, COMPREHENSIVE_READING } from './massive-content-database'
 import { Task, NotenkyoScore } from './types'
@@ -218,7 +218,7 @@ export class MassiveLearningEngine {
     difficulty: 'basic' | 'intermediate' | 'advanced' | 'expert',
     count: number
   ): Task[] {
-    const allVocab = MASSIVE_VOCABULARY_DATABASE
+    const allVocab = CLEAN_VOCABULARY
     const vocabularyData = allVocab.filter(word => word.level === difficulty)
     const selectedWords = vocabularyData.slice(0, count)
     

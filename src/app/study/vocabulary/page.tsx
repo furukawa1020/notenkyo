@@ -23,7 +23,7 @@ interface VocabularyItem {
   word: string
   pronunciation: string
   meanings: string[]
-  partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb' | 'preposition' | 'conjunction' | 'other'
+  partOfSpeech: 'noun' | 'verb' | 'adjective' | 'adverb' | 'preposition' | 'conjunction' | 'pronoun' | 'other'
   exampleSentences: Array<{ english: string; japanese: string; context: 'business' | 'daily' | 'academic' | 'technical' }>
   level: number // UI用に数値に変換後のレベル（1-4）
   frequency: number

@@ -1,7 +1,7 @@
 // 実際の学習コンテンツ生成システム
 // デモ・サンプルデータを排除し、本格的なTOEIC学習システムを構築
 
-import { VocabularyEntry, ALL_VOCABULARY, getRandomVocabulary, getVocabularyByLevel } from './vocabulary-database'
+import { VocabularyEntry, CLEAN_VOCABULARY as ALL_VOCABULARY, getRandomVocabulary, getVocabularyByLevel } from './enhanced-vocabulary-database'
 import { GrammarQuestion, ALL_GRAMMAR, getRandomGrammar, getGrammarByLevel } from './grammar-database'
 import { Task, UserState } from './types'
 
@@ -173,7 +173,7 @@ export class RealContentGenerator {
       timePerWord = 0.7
     }
     
-    const vocabulary = getRandomVocabulary(wordCount, userLevel)
+    const vocabulary = getRandomVocabulary(wordCount)
     const estimatedTime = Math.ceil(wordCount * timePerWord)
     
     return {
