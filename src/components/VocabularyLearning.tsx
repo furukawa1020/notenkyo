@@ -64,164 +64,42 @@ export default function VocabularyLearning({
     return newArray
   }
 
-  // 不正解の選択肢を生成する関数
-  const generateWrongChoices = (correctMeaning: string, level: string): ChoiceOption[] => {
-    // 同じレベルの単語からランダムに選択
-    const levelWords = getVocabularyByLevel(level as 'basic' | 'intermediate' | 'advanced' | 'expert')
+  // 不正解の選択肢を生成する関数（シンプル版）
+  const generateWrongChoices = (correctMeaning: string): ChoiceOption[] => {
+    // 単語データベースから適当に他の3つの意味を取得
+    const allWords = getRandomVocabulary(200) // 200語からランダム選択
     
-    // 現在の単語の品詞を取得
-    const currentPartOfSpeech = currentWord?.partOfSpeech
+    const wrongMeanings: string[] = []
     
-    // 不適切な選択肢をフィルタリングする関数
-    const isValidChoice = (meaning: string): boolean => {
-      // 基本的な除外条件
-      if (!meaning || meaning.length <= 1 || meaning === correctMeaning) return false
-      
-      // 一般的すぎる単語やひらがなのみの単語を除外
-      const invalidPatterns = [
-        'ない', 'いる', 'ある', 'する', 'なる', 'くる', 'いく', 'みる', 'きく', 'いう',
-        'もの', 'こと', 'とき', 'ばあい', 'ところ', 'ひと', 'てき', 'かん', 'せい',
-        '豊富な', 'できる', '〜', '化す', '的な', '性', '感', '間', '関', '官', '館'
-      ]
-      
-      // ひらがなのみの短い単語を除外
-      if (/^[ひらがな]+$/.test(meaning) && meaning.length <= 3) return false
-      
-      // 無効なパターンをチェック
-      for (const pattern of invalidPatterns) {
-        if (meaning.includes(pattern)) return false
-      }
-      
-      // 助詞や助動詞的な表現を除外
-      if (/^(を|に|で|から|まで|と|や|の|が|は|も|て|で|だ|である)/.test(meaning)) return false
-      
-      return true
-    }
-    
-    // 同じ品詞の単語を優先的に選択
-    const samePartWords = levelWords.filter(word => 
-      word.partOfSpeech === currentPartOfSpeech && word.id !== currentWord?.id
-    )
-    
-    // 適切な意味を収集
-    const allValidMeanings: string[] = []
-    const processWords = (words: any[], limit: number = 100) => {
-      const shuffledWords = shuffleArray(words).slice(0, limit)
-      shuffledWords.forEach(word => {
-        word.meanings.forEach((meaning: string) => {
-          if (isValidChoice(meaning) && !allValidMeanings.includes(meaning)) {
-            allValidMeanings.push(meaning)
-          }
-        })
-      })
-    }
-    
-    // まず同じ品詞から選択を試行
-    if (samePartWords.length > 0) {
-      processWords(samePartWords, 50)
-    }
-    
-    // 不足している場合は他の品詞からも選択
-    if (allValidMeanings.length < 10) {
-      const otherWords = levelWords.filter(word => 
-        word.partOfSpeech !== currentPartOfSpeech && word.id !== currentWord?.id
-      )
-      processWords(otherWords, 100)
-    }
-    
-    // さらに不足している場合は他のレベルからも選択
-    if (allValidMeanings.length < 10) {
-      const allLevels = ['basic', 'intermediate', 'advanced', 'expert'] as const
-      for (const otherLevel of allLevels) {
-        if (otherLevel !== level) {
-          const otherLevelWords = getVocabularyByLevel(otherLevel)
-          processWords(otherLevelWords, 50)
-          if (allValidMeanings.length >= 15) break
+    for (const word of allWords) {
+      for (const meaning of word.meanings) {
+        // 正解と同じでない意味を収集
+        if (meaning !== correctMeaning && !wrongMeanings.includes(meaning)) {
+          wrongMeanings.push(meaning)
         }
+        // 3つ集まったら終了
+        if (wrongMeanings.length >= 3) break
+      }
+      if (wrongMeanings.length >= 3) break
+    }
+    
+    // 3つに満たない場合のバックアップ
+    const backupMeanings = [
+      "管理する", "実施する", "確認する", "提供する", "支援する", "改善する",
+      "開発する", "維持する", "分析する", "評価する", "検討する", "承認する"
+    ]
+    
+    while (wrongMeanings.length < 3) {
+      const backup = backupMeanings[wrongMeanings.length]
+      if (backup && backup !== correctMeaning) {
+        wrongMeanings.push(backup)
       }
     }
     
-    // 選択肢を選択
-    const shuffledMeanings = shuffleArray(allValidMeanings)
-    const wrongOptions = shuffledMeanings.slice(0, 3).map(meaning => ({
+    return wrongMeanings.slice(0, 3).map(meaning => ({
       meaning,
       isCorrect: false
     }))
-    
-    // 十分な選択肢がない場合の高品質バックアップ選択肢
-    const getBackupChoices = (partOfSpeech: string, wordLevel: string): string[] => {
-      if (partOfSpeech === 'adverb') {
-        return [
-          "効果的に", "効率的に", "適切に", "正確に", "明確に", "完全に", "部分的に",
-          "直接的に", "間接的に", "具体的に", "抽象的に", "最終的に", "最初に",
-          "特に", "主に", "一般的に", "通常", "常に", "時々", "頻繁に"
-        ]
-      } else if (partOfSpeech === 'verb') {
-        return [
-          "実施する", "実行する", "管理する", "運営する", "監督する", "支援する",
-          "開発する", "改善する", "向上させる", "維持する", "保持する", "確保する",
-          "分析する", "評価する", "検討する", "調査する", "研究する", "確認する",
-          "承認する", "決定する", "提案する", "推奨する", "要求する", "依頼する"
-        ]
-      } else if (partOfSpeech === 'adjective') {
-        return [
-          "効果的な", "効率的な", "重要な", "必要な", "適切な", "不適切な",
-          "具体的な", "抽象的な", "詳細な", "複雑な", "単純な", "明確な",
-          "正確な", "不正確な", "完全な", "不完全な", "十分な", "不十分な",
-          "一般的な", "特別な", "基本的な", "高度な", "専門的な", "技術的な"
-        ]
-      } else { // noun や other
-        switch (wordLevel) {
-          case 'basic':
-            return [
-              "会社", "企業", "組織", "部門", "部署", "チーム", "従業員", "職員",
-              "会議", "打ち合わせ", "議論", "相談", "計画", "予定", "目標", "目的",
-              "方法", "手段", "方式", "システム", "プロセス", "手順", "作業"
-            ]
-          case 'intermediate':
-            return [
-              "戦略", "方針", "政策", "制度", "規則", "基準", "標準", "品質",
-              "管理", "運営", "経営", "業務", "事業", "活動", "取り組み",
-              "分析", "評価", "検討", "研究", "調査", "報告", "結果", "成果"
-            ]
-          case 'advanced':
-            return [
-              "最適化", "効率化", "合理化", "標準化", "体系化", "統合", "連携",
-              "持続可能性", "競争力", "生産性", "収益性", "信頼性", "透明性",
-              "革新", "改革", "変革", "発展", "進歩", "成長", "拡大", "展開"
-            ]
-          default:
-            return [
-              "グローバル化", "デジタル化", "自動化", "国際化", "多様化", "専門化",
-              "個別化", "カスタマイズ", "パーソナライゼーション", "イノベーション",
-              "トランスフォーメーション", "オプティマイゼーション", "シナジー",
-              "パラダイム", "フレームワーク", "メソドロジー", "アプローチ"
-            ]
-        }
-      }
-    }
-    
-    // バックアップ選択肢から必要な数を補完
-    if (wrongOptions.length < 3) {
-      const backupChoices = getBackupChoices(currentPartOfSpeech || 'noun', level)
-      const usedMeanings = new Set([correctMeaning, ...wrongOptions.map(opt => opt.meaning)])
-      
-      const availableBackups = backupChoices.filter(choice => 
-        !usedMeanings.has(choice) && isValidChoice(choice)
-      )
-      
-      const shuffledBackups = shuffleArray(availableBackups)
-      const neededChoices = 3 - wrongOptions.length
-      
-      for (let i = 0; i < Math.min(neededChoices, shuffledBackups.length); i++) {
-        wrongOptions.push({
-          meaning: shuffledBackups[i],
-          isCorrect: false
-        })
-      }
-    }
-    
-    return wrongOptions
   }
 
   // 4つの選択肢を生成
@@ -235,7 +113,7 @@ export default function VocabularyLearning({
     }
     
     // 不正解の選択肢を生成
-    const wrongOptions = generateWrongChoices(correctOption.meaning, word.level)
+    const wrongOptions = generateWrongChoices(correctOption.meaning)
     
     // 選択肢をまとめる
     const allOptions = [
