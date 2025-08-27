@@ -64,21 +64,43 @@ export default function VocabularyLearning({
     return newArray
   }
 
-  // 不正解の選択肢を生成する関数（超シンプル版）
+  // 不正解の選択肢を生成する関数（フィルタ付きシンプル版）
   const generateWrongChoices = (correctMeaning: string, currentWord: VocabularyEntry): ChoiceOption[] => {
     // データベースから他の単語をランダムに取得
     const allWords = getRandomVocabulary(300)
     
     const wrongMeanings: string[] = []
     
+    // 不適切な意味をフィルタリングする関数
+    const isValidMeaning = (meaning: string): boolean => {
+      // 空文字や特殊文字のみの意味を除外
+      if (!meaning || meaning.trim().length === 0) return false
+      if (meaning === "〜" || meaning === "物事") return false
+      
+      // 説明的文言を除外（単語名を含む説明）
+      const lowerMeaning = meaning.toLowerCase()
+      const wordInMeaning = allWords.some(w => 
+        lowerMeaning.includes(w.word.toLowerCase()) && 
+        (lowerMeaning.includes("の意味") || lowerMeaning.includes("における") || lowerMeaning.includes("上級") || lowerMeaning.includes("専門"))
+      )
+      if (wordInMeaning) return false
+      
+      // 現在の単語名を含む説明を除外
+      if (lowerMeaning.includes(currentWord.word.toLowerCase())) return false
+      
+      return true
+    }
+    
     // 現在の単語以外の単語から意味を取得
     for (const word of allWords) {
       // 現在の単語とは違う単語の意味のみを選択
       if (word.id !== currentWord.id) {
-        // その単語の最初の意味だけ使用（シンプルに）
-        const meaning = word.meanings[0]
-        if (meaning !== correctMeaning && !wrongMeanings.includes(meaning)) {
-          wrongMeanings.push(meaning)
+        // その単語のすべての意味から適切なものを探す
+        for (const meaning of word.meanings) {
+          if (isValidMeaning(meaning) && meaning !== correctMeaning && !wrongMeanings.includes(meaning)) {
+            wrongMeanings.push(meaning)
+            break // この単語からは1つだけ取得
+          }
         }
         // 3つ集まったら終了
         if (wrongMeanings.length >= 3) break
