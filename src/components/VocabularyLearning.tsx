@@ -64,57 +64,50 @@ export default function VocabularyLearning({
     return newArray
   }
 
-  // 不正解の選択肢を生成する関数（フィルタ付きシンプル版）
+  // 不正解の選択肢を生成する関数（確実版）
   const generateWrongChoices = (correctMeaning: string, currentWord: VocabularyEntry): ChoiceOption[] => {
-    // データベースから他の単語をランダムに取得
-    const allWords = getRandomVocabulary(300)
+    // 確実にクリーンな意味のプール
+    const cleanMeanings = [
+      "管理する", "実施する", "確認する", "提供する", "支援する",
+      "達成する", "成し遂げる", "受け入れる", "承諾する", "加える", "追加する",
+      "同意する", "合意する", "許可する", "可能にする", "答える", "応答する",
+      "現れる", "見える", "申し込む", "適用する", "到着する", "着く",
+      "尋ねる", "頼む", "能力", "才能", "について", "およそ",
+      "の上に", "以上", "横切って", "全体に", "後に", "後で",
+      "に対して", "に反対して", "に沿って", "と一緒に", "の間で", "の中で",
+      "周りに", "前に", "以前に", "建物", "構造", "事業", "会社",
+      "変更", "変化", "選択", "選ぶ", "市民", "都市", "清潔", "きれい",
+      "閉じる", "近い", "色", "来る", "共通", "一般的", "完全", "全部",
+      "考える", "思う", "続ける", "継続", "作る", "創造", "切る", "日", "決める",
+      "発展", "開発", "違い", "異なる", "行う", "教育", "効果", "終わり",
+      "環境", "等しい", "特に", "例", "経験", "説明", "事実", "家族",
+      "感じる", "分野", "見つける", "従う", "食べ物", "力", "忘れる", "形",
+      "友達", "完全", "与える", "政府", "グループ", "成長", "手", "起こる",
+      "健康", "助ける", "歴史", "家", "重要", "含む", "増加", "情報",
+      "代わりに", "関心", "国際", "仕事", "加わる", "保つ", "種類", "知識",
+      "土地", "言語", "大きい", "学ぶ", "去る", "レベル", "生活", "線",
+      "リスト", "住む", "地方", "見る", "作る", "管理", "市場", "意味",
+      "会う", "メンバー", "方法", "お金", "動く", "音楽", "名前", "国",
+      "必要", "新しい", "ニュース", "次", "数", "提供", "注文", "組織",
+      "その他", "ページ", "部分", "特に", "人", "場所", "計画", "遊ぶ",
+      "点", "政策", "可能", "力", "現在", "問題", "プログラム", "提供",
+      "公共", "目的", "質問", "理由", "受ける", "関係", "記憶", "報告",
+      "結果", "右", "部屋", "実行", "学校", "科学", "見る", "服務",
+      "設定", "示す", "社会", "何か", "話す", "特別", "状態", "物語",
+      "研究", "システム", "取る", "話", "税", "教える", "技術", "考える",
+      "時間", "今日", "一緒", "トップ", "貿易", "訓練", "旅行", "試す",
+      "タイプ", "理解", "使う", "価値", "様々", "見る", "方法", "働く",
+      "世界", "書く", "年", "若い"
+    ]
+    
+    // 正解の意味と重複しないものをランダムに選択
+    const availableMeanings = cleanMeanings.filter(meaning => meaning !== correctMeaning)
     
     const wrongMeanings: string[] = []
+    const shuffled = [...availableMeanings].sort(() => Math.random() - 0.5)
     
-    // 不適切な意味をフィルタリングする関数
-    const isValidMeaning = (meaning: string): boolean => {
-      // 空文字や特殊文字のみの意味を除外
-      if (!meaning || meaning.trim().length === 0) return false
-      if (meaning === "〜" || meaning === "物事") return false
-      
-      // 説明的文言を除外（単語名を含む説明）
-      const lowerMeaning = meaning.toLowerCase()
-      const wordInMeaning = allWords.some(w => 
-        lowerMeaning.includes(w.word.toLowerCase()) && 
-        (lowerMeaning.includes("の意味") || lowerMeaning.includes("における") || lowerMeaning.includes("上級") || lowerMeaning.includes("専門"))
-      )
-      if (wordInMeaning) return false
-      
-      // 現在の単語名を含む説明を除外
-      if (lowerMeaning.includes(currentWord.word.toLowerCase())) return false
-      
-      return true
-    }
-    
-    // 現在の単語以外の単語から意味を取得
-    for (const word of allWords) {
-      // 現在の単語とは違う単語の意味のみを選択
-      if (word.id !== currentWord.id) {
-        // その単語のすべての意味から適切なものを探す
-        for (const meaning of word.meanings) {
-          if (isValidMeaning(meaning) && meaning !== correctMeaning && !wrongMeanings.includes(meaning)) {
-            wrongMeanings.push(meaning)
-            break // この単語からは1つだけ取得
-          }
-        }
-        // 3つ集まったら終了
-        if (wrongMeanings.length >= 3) break
-      }
-    }
-    
-    // まだ3つに満たない場合のシンプルなバックアップ
-    const simpleBackups = ["管理する", "実施する", "確認する", "提供する", "支援する"]
-    
-    while (wrongMeanings.length < 3) {
-      const backup = simpleBackups[wrongMeanings.length % simpleBackups.length]
-      if (backup !== correctMeaning && !wrongMeanings.includes(backup)) {
-        wrongMeanings.push(backup)
-      }
+    for (let i = 0; i < Math.min(3, shuffled.length); i++) {
+      wrongMeanings.push(shuffled[i])
     }
     
     return wrongMeanings.slice(0, 3).map(meaning => ({
