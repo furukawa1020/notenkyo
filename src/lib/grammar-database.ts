@@ -1,18 +1,14 @@
 // TOEIC完全文法データベース（新版）
-// 包括的文法データベースから必要な問題を提供
+// massive-grammar-databaseから必要な問題を提供
 
 import {
-  COMPREHENSIVE_GRAMMAR,
-  getGrammarByLevel,
-  getGrammarByCategory,
-  getGrammarByDifficulty,
-  getRandomGrammar,
-  getHighFrequencyGrammar,
-  getAllGrammar as getComprehensiveGrammar,
-  getTOEICEssentialGrammar,
-  getRecommendedGrammar,
+  MASSIVE_GRAMMAR_DATABASE,
+  BASIC_GRAMMAR,
+  INTERMEDIATE_GRAMMAR,
+  ADVANCED_GRAMMAR,
+  EXPERT_GRAMMAR,
   type GrammarQuestion
-} from './comprehensive-grammar'
+} from './massive-grammar-database'
 
 // 型定義の互換性維持
 export interface GrammarQuestionData {
@@ -28,9 +24,6 @@ export interface GrammarQuestionData {
   explanation: string
   grammarPoint?: string
   passage?: string
-  japaneseTranslation?: string
-  businessContext?: string
-  difficulty?: number
   frequency?: number
   tags?: string[]
 }
@@ -38,25 +31,54 @@ export interface GrammarQuestionData {
 // 型定義の再エクスポート
 export type { GrammarQuestion }
 
-// 包括的データベースから必要な問題を抽出
-export const PART5_QUESTIONS = getGrammarByCategory('parts-of-speech').concat(
-  getGrammarByCategory('tenses'),
-  getGrammarByCategory('prepositions'),
-  getGrammarByCategory('conjunctions')
-).slice(0, 200) // Part 5形式の問題
+// ローカル関数実装
+function getGrammarByLevel(level: 'basic' | 'intermediate' | 'advanced' | 'expert'): GrammarQuestion[] {
+  return MASSIVE_GRAMMAR_DATABASE.filter(q => q.level === level)
+}
 
-export const PART6_QUESTIONS = getGrammarByCategory('text-completion').concat(
-  getGrammarByCategory('context-clues'),
-  getGrammarByCategory('discourse-markers')
-).slice(0, 100) // Part 6形式の問題
+function getGrammarByCategory(category: string): GrammarQuestion[] {
+  return MASSIVE_GRAMMAR_DATABASE.filter(q => q.category === category)
+}
 
-export const BASIC_GRAMMAR = getGrammarByLevel('basic')
-export const INTERMEDIATE_GRAMMAR = getGrammarByLevel('intermediate') 
-export const ADVANCED_GRAMMAR = getGrammarByLevel('advanced')
-export const EXPERT_GRAMMAR = getGrammarByLevel('expert')
+function getGrammarByDifficulty(difficulty: number): GrammarQuestion[] {
+  return MASSIVE_GRAMMAR_DATABASE.filter(q => q.difficulty === difficulty)
+}
+
+function getRandomGrammar(count: number): GrammarQuestion[] {
+  const shuffled = [...MASSIVE_GRAMMAR_DATABASE].sort(() => Math.random() - 0.5)
+  return shuffled.slice(0, count)
+}
+
+function getHighFrequencyGrammar(count: number = 100): GrammarQuestion[] {
+  return MASSIVE_GRAMMAR_DATABASE
+    .filter(q => q.frequency >= 4)
+    .slice(0, count)
+}
+
+function getTOEICEssentialGrammar(count: number = 200): GrammarQuestion[] {
+  return MASSIVE_GRAMMAR_DATABASE
+    .filter(q => q.frequency >= 3 && q.part === 5)
+    .slice(0, count)
+}
+
+function getRecommendedGrammar(level: 'basic' | 'intermediate' | 'advanced' | 'expert', count: number = 50): GrammarQuestion[] {
+  return getGrammarByLevel(level).slice(0, count)
+}
+
+// Part別の問題抽出
+export const PART5_QUESTIONS = MASSIVE_GRAMMAR_DATABASE
+  .filter(q => q.part === 5)
+  .slice(0, 200)
+
+export const PART6_QUESTIONS = MASSIVE_GRAMMAR_DATABASE
+  .filter(q => q.part === 6)
+  .slice(0, 100)
+
+// レベル別問題（massive-grammar-databaseからの再エクスポート）
+export { BASIC_GRAMMAR, INTERMEDIATE_GRAMMAR, ADVANCED_GRAMMAR, EXPERT_GRAMMAR }
 
 // 統合された全問題
-export const ALL_GRAMMAR = COMPREHENSIVE_GRAMMAR
+export const ALL_GRAMMAR = MASSIVE_GRAMMAR_DATABASE
 
 // 旧形式との互換性
 export const ALL_GRAMMAR_QUESTIONS = ALL_GRAMMAR
@@ -74,7 +96,7 @@ export const GRAMMAR_STATS = {
 
 // エクスポート関数（既存APIとの互換性維持）
 export function getAllGrammar(): GrammarQuestion[] {
-  return getComprehensiveGrammar()
+  return MASSIVE_GRAMMAR_DATABASE
 }
 
 // 関数の再エクスポート
@@ -91,7 +113,7 @@ export {
 // 旧API互換性関数
 export function getGrammarQuestions(filter?: {
   part?: 5 | 6
-  difficulty?: 'basic' | 'intermediate' | 'advanced'
+  difficulty?: 'basic' | 'intermediate' | 'advanced' | 'expert'
   grammarPoint?: string
   count?: number
 }): GrammarQuestion[] {
@@ -105,7 +127,7 @@ export function getGrammarQuestions(filter?: {
     questions = questions.filter(q => 
       q.category === filter.grammarPoint || 
       q.subcategory === filter.grammarPoint ||
-      q.tags.includes(filter.grammarPoint)
+      q.tags?.includes(filter.grammarPoint)
     )
   }
 
@@ -126,7 +148,7 @@ export function getGrammarQuestions(filter?: {
 export function getRandomGrammarQuestions(
   count: number, 
   part?: 5 | 6, 
-  difficulty?: 'basic' | 'intermediate' | 'advanced'
+  difficulty?: 'basic' | 'intermediate' | 'advanced' | 'expert'
 ): GrammarQuestion[] {
   return getGrammarQuestions({ count, part, difficulty })
 }
