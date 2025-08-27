@@ -22,7 +22,8 @@ import {
   Calendar,
   Clock,
   Award,
-  Zap
+  Zap,
+  User
 } from 'lucide-react'
 
 // コンポーネントのインポート
@@ -31,6 +32,7 @@ import NoutenkyoCheckIn from '@/components/NoutenkyoCheckIn'
 import { InstallButton } from '@/components/install-button'
 import { PWAInstallInstructions } from '@/components/pwa-install'
 import { learningStorage, createInitialProgress } from '@/lib/learning-storage'
+import { getUserProfile, updateUserProfile, createUserProfile } from '@/lib/profile-manager'
 
 interface AppState {
   userId: string
@@ -72,10 +74,14 @@ export default function TOEICLearningApp() {
     try {
       // ローカルストレージから基本設定を復元
       const savedUserId = localStorage.getItem('noutenkyoUserId')
-      const savedScore = localStorage.getItem('currentToeicScore')
       
-      if (savedUserId && savedScore) {
+      if (savedUserId) {
         const userId = savedUserId
+        
+        // プロフィールからTOEICスコアを取得
+        const userProfile = await getUserProfile(userId)
+        const currentScore = userProfile?.currentToeicScore || 500
+        
         const progress = await learningStorage.getLearningProgress(userId)
         const statistics = await learningStorage.getStatistics(userId)
         
@@ -87,7 +93,8 @@ export default function TOEICLearningApp() {
         setAppState(prev => ({
           ...prev,
           userId,
-          currentToeicScore: parseInt(savedScore),
+          currentToeicScore: currentScore,
+          targetToeicScore: userProfile?.targetToeicScore || 800,
           isFirstTime: false,
           learningProgress: progress,
           statistics,
@@ -119,10 +126,28 @@ export default function TOEICLearningApp() {
       
       await learningStorage.saveLearningProgress(progress)
       
+      // プロフィールを作成・更新
+      const existingProfile = await getUserProfile(userId)
+      if (existingProfile) {
+        await updateUserProfile({
+          id: userId,
+          currentToeicScore: appState.currentToeicScore,
+          targetToeicScore: appState.targetToeicScore
+        })
+      } else {
+        await createUserProfile({
+          id: userId,
+          name: 'TOEIC学習者',
+          currentToeicScore: appState.currentToeicScore,
+          targetToeicScore: appState.targetToeicScore,
+          level: appState.currentToeicScore < 500 ? 'basic' : 
+                 appState.currentToeicScore < 700 ? 'intermediate' : 
+                 appState.currentToeicScore < 850 ? 'advanced' : 'expert'
+        })
+      }
+      
       // ローカルストレージに基本情報を保存
       localStorage.setItem('noutenkyoUserId', userId)
-      localStorage.setItem('currentToeicScore', appState.currentToeicScore.toString())
-      localStorage.setItem('targetToeicScore', appState.targetToeicScore.toString())
       
       setAppState(prev => ({
         ...prev,
@@ -250,6 +275,27 @@ export default function TOEICLearningApp() {
     )
   }
 
+  // TOEICスコア更新関数
+  const updateToeicScore = async (newScore: number, isTarget: boolean = false) => {
+    try {
+      if (appState.userId) {
+        const updateData = {
+          id: appState.userId,
+          [isTarget ? 'targetToeicScore' : 'currentToeicScore']: newScore
+        }
+        
+        await updateUserProfile(updateData)
+      }
+      
+      setAppState(prev => ({
+        ...prev,
+        [isTarget ? 'targetToeicScore' : 'currentToeicScore']: newScore
+      }))
+    } catch (error) {
+      console.error('Failed to update TOEIC score:', error)
+    }
+  }
+
   // 初期設定画面
   if (currentView === 'setup') {
     return (
@@ -275,10 +321,7 @@ export default function TOEICLearningApp() {
                   min="10"
                   max="990"
                   value={appState.currentToeicScore}
-                  onChange={(e) => setAppState(prev => ({
-                    ...prev,
-                    currentToeicScore: parseInt(e.target.value) || 500
-                  }))}
+                  onChange={(e) => updateToeicScore(parseInt(e.target.value) || 500, false)}
                   className="text-center text-lg font-semibold"
                 />
                 <div className="mt-2 text-center">
@@ -294,10 +337,7 @@ export default function TOEICLearningApp() {
                   min={appState.currentToeicScore}
                   max="990"
                   value={appState.targetToeicScore}
-                  onChange={(e) => setAppState(prev => ({
-                    ...prev,
-                    targetToeicScore: parseInt(e.target.value) || 800
-                  }))}
+                  onChange={(e) => updateToeicScore(parseInt(e.target.value) || 800, true)}
                   className="text-center text-lg font-semibold"
                 />
               </div>
@@ -626,6 +666,17 @@ export default function TOEICLearningApp() {
                     />
                   </div>
                   <div>
+                    <Label htmlFor="current-score-update">現在のTOEICスコア</Label>
+                    <Input
+                      id="current-score-update"
+                      type="number"
+                      min="10"
+                      max="990"
+                      value={appState.currentToeicScore}
+                      onChange={(e) => updateToeicScore(parseInt(e.target.value) || 500, false)}
+                    />
+                  </div>
+                  <div>
                     <Label htmlFor="target-update">目標スコア</Label>
                     <Input
                       id="target-update"
@@ -633,12 +684,22 @@ export default function TOEICLearningApp() {
                       min={appState.currentToeicScore}
                       max="990"
                       value={appState.targetToeicScore}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 800
-                        setAppState(prev => ({ ...prev, targetToeicScore: newValue }))
-                        localStorage.setItem('targetToeicScore', newValue.toString())
-                      }}
+                      onChange={(e) => updateToeicScore(parseInt(e.target.value) || 800, true)}
                     />
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h3 className="font-semibold">プロフィール</h3>
+                  <div className="space-y-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => window.open('/profile', '_blank')}
+                      className="w-full"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      詳細プロフィール設定
+                    </Button>
                   </div>
                 </div>
                 
