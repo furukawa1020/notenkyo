@@ -1,6 +1,6 @@
 {
   "name": "のうてんきょ",
-  "short_name": "のうきょ",
+  "short_name": "のうてんきょ",
   "description": "ADHD・うつ傾向のあるユーザー向けTOEIC学習PWAアプリ",
   "start_url": "/",
   "display": "standalone",
