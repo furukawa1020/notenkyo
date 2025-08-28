@@ -36,6 +36,7 @@ import {
   EXPERT_VOCABULARY,
   VocabularyEntry
 } from '@/lib/enhanced-vocabulary-database'
+import { getFlashcardWords, hybridVocabularySystem } from '@/lib/hybrid-vocabulary-system'
 
 // 閲覧履歴のための型
 type VocabularyHistory = {

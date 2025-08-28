@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { VocabularyEntry, getVocabularyByLevel, getRandomVocabulary } from '@/lib/enhanced-vocabulary-database'
+import { getQuizWords, hybridVocabularySystem, UnifiedVocabularyEntry } from '@/lib/hybrid-vocabulary-system'
 import { speakWordWithDetails } from '@/lib/audio-manager'
 import { Volume2, BookOpen, Brain, Target, CheckCircle, XCircle, Star, HelpCircle } from 'lucide-react'
 
@@ -34,8 +35,8 @@ export default function VocabularyLearning({
   sessionDuration, 
   onComplete 
 }: VocabularyLearningProps) {
-  const [currentWord, setCurrentWord] = useState<VocabularyEntry | null>(null)
-  const [sessionWords, setSessionWords] = useState<VocabularyEntry[]>([])
+  const [currentWord, setCurrentWord] = useState<UnifiedVocabularyEntry | null>(null)
+  const [sessionWords, setSessionWords] = useState<UnifiedVocabularyEntry[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [showAnswer, setShowAnswer] = useState(false)
   const [score, setScore] = useState(0)
@@ -65,7 +66,7 @@ export default function VocabularyLearning({
   }
 
   // 不正解の選択肢を生成する関数（確実版）
-  const generateWrongChoices = (correctMeaning: string, currentWord: VocabularyEntry): ChoiceOption[] => {
+  const generateWrongChoices = (correctMeaning: string, currentWord: UnifiedVocabularyEntry): ChoiceOption[] => {
     // 確実にクリーンな意味のプール
     const cleanMeanings = [
       "管理する", "実施する", "確認する", "提供する", "支援する",
@@ -117,7 +118,7 @@ export default function VocabularyLearning({
   }
 
   // 4つの選択肢を生成
-  const generateOptions = (word: VocabularyEntry): ChoiceOption[] => {
+  const generateOptions = (word: UnifiedVocabularyEntry): ChoiceOption[] => {
     if (!word) return []
     
     // 重要単語の正しい意味辞書
@@ -442,7 +443,7 @@ export default function VocabularyLearning({
     }
     
     // 適切な正解の意味を選択する関数
-    const getCleanCorrectMeaning = (word: VocabularyEntry): string => {
+    const getCleanCorrectMeaning = (word: UnifiedVocabularyEntry): string => {
       // まず辞書から正しい意味を確認
       const dictMeaning = correctMeaningsDict[word.word.toLowerCase()]
       if (dictMeaning) {
@@ -485,7 +486,9 @@ export default function VocabularyLearning({
         'conjunction': '接続詞'
       }
       
-      return fallbackMeanings[word.partOfSpeech] || 'TOEIC重要単語'
+      // partOfSpeechが配列の場合は最初の要素を使用
+      const partOfSpeech = Array.isArray(word.partOfSpeech) ? word.partOfSpeech[0] : word.partOfSpeech
+      return fallbackMeanings[partOfSpeech] || 'TOEIC重要単語'
     }
     
     // 正解の選択肢（適切な意味を選択）
@@ -511,7 +514,8 @@ export default function VocabularyLearning({
   // セッション開始
   const startSession = () => {
     const level = determineLevel(userLevel)
-    const words = getRandomVocabulary(50) // 50語取得
+    // 🎯 四択問題用：高品質金フレデータを使用
+    const words = getQuizWords(level, 50) 
     
     setSessionWords(words)
     setCurrentWord(words[0])
@@ -566,8 +570,8 @@ export default function VocabularyLearning({
     
     if (isCorrect) {
       setScore(score + 1)
-      if (currentWord?.id) {
-        setWordsLearned([...wordsLearned, currentWord.id])
+      if (currentWord?.word) {
+        setWordsLearned([...wordsLearned, currentWord.word])
       }
     }
     
