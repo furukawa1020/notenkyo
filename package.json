@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@types/minimatch": "^5.1.2",
-    "@types/node": "^20",
+    "@types/node": "^20.19.11",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",

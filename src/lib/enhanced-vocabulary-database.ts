@@ -29255,23 +29255,23 @@ export const BASIC_VOCABULARY: VocabularyEntry[] = [
   {
     id: 'vocab_basic_1170',
     word: 'search',
-    pronunciation: '/ˈseaər/',
+    pronunciation: '/sɜːrtʃ/',
     partOfSpeech: 'verb',
-    meanings: ["〜する","〜を行う"],
+    meanings: ["探す","検索する","捜索する"],
     level: 'basic',
     frequency: 4,
-    synonyms: ["perform","execute","carry out"],
+    synonyms: ["look for","find","seek"],
     antonyms: [],
-    collocations: ["search effectively","search successfully","search properly"],
+    collocations: ["search for","search through","search online","job search","search engine"],
     exampleSentences: [
       {
-        "english": "We search our processes to improve efficiency.",
-        "japanese": "〜するすることで業務効率が向上しています。",
+        "english": "We need to search for new suppliers.",
+        "japanese": "新しい供給業者を探す必要があります。",
         "context": "business"
       },
       {
-        "english": "Researchers search various factors in their studies.",
-        "japanese": "研究では〜するすることを詳細に検討しています。",
+        "english": "Researchers search for evidence in their studies.",
+        "japanese": "研究者は研究で証拠を探します。",
         "context": "academic"
       }
     ],
@@ -167718,33 +167718,37 @@ export const INTERMEDIATE_VOCABULARY: VocabularyEntry[] = [
   {
     "id": "vocab_intermediate_2435",
     "word": "search",
-    "pronunciation": "/search/",
+    "pronunciation": "/sɜːrtʃ/",
     "partOfSpeech": "noun",
     "meanings": [
-      "searchの意味",
-      "ビジネスにおけるsearch"
+      "検索",
+      "探索",
+      "捜索"
     ],
     "level": "intermediate",
     "frequency": 6,
     "synonyms": [
-      "related_search",
-      "similar_search"
+      "investigation",
+      "exploration",
+      "hunt"
     ],
     "antonyms": [],
     "collocations": [
-      "search effectively",
-      "professional search"
+      "job search",
+      "online search",
+      "thorough search",
+      "search results"
     ],
     "exampleSentences": [
       {
-        "english": "Professional search is important for business success.",
-        "japanese": "これはsearchの意味のビジネス文脈での例です。",
+        "english": "The job search took several months to complete.",
+        "japanese": "就職活動は完了するまで数ヶ月かかりました。",
         "context": "business"
       },
       {
-        "english": "Professional search requires skill and experience.",
-        "japanese": "プロフェッショナルなsearchの意味にはスキルと経験が必要です。",
-        "context": "academic"
+        "english": "Our search for the missing documents was successful.",
+        "japanese": "紛失した書類の捜索は成功しました。",
+        "context": "business"
       }
     ],
     "categories": [

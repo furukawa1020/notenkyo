@@ -436,7 +436,9 @@ export default function VocabularyLearning({
       'wind': '風',
       'wine': 'ワイン',
       'wood': '木',
-      'yard': '庭'
+      'yard': '庭',
+      // searchの正しい意味を追加
+      'search': '探す'
     }
     
     // 適切な正解の意味を選択する関数
@@ -472,15 +474,15 @@ export default function VocabularyLearning({
       }
       
       // 適切な意味が見つからない場合のフォールバック
-      // 品詞ベースではなく、ユーザーフレンドリーな表示
+      // 品詞別の一般的な説明ではなく、基本的な意味を提供
       const fallbackMeanings: { [key: string]: string } = {
-        'noun': '単語を学習中',
-        'verb': '動作を表す単語', 
-        'adjective': '性質を表す単語',
-        'adverb': '程度を表す単語',
-        'preposition': '位置を表す単語',
-        'pronoun': '代わりを表す単語',
-        'conjunction': '接続を表す単語'
+        'noun': '名詞',
+        'verb': '動詞', 
+        'adjective': '形容詞',
+        'adverb': '副詞',
+        'preposition': '前置詞',
+        'pronoun': '代名詞',
+        'conjunction': '接続詞'
       }
       
       return fallbackMeanings[word.partOfSpeech] || 'TOEIC重要単語'
